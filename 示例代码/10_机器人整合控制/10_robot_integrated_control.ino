@@ -52,7 +52,10 @@ const uint8_t CMD_SPEED_CLOSED_LOOP = 0xA2;
 int currentAngles[SERVO_COUNT] = {90, 90, 90, 90};
 int targetAngles[SERVO_COUNT] = {90, 90, 90, 90};
 unsigned long lastServoUpdate = 0;
-const unsigned long servoInterval = 15;
+uint8_t nextServoToUpdate = 0;
+const unsigned long servoInterval = 5;
+
+void updateServos();
 
 // ==================== 4. 工具函数 ====================
 
@@ -86,6 +89,8 @@ bool readMotorResponse(uint8_t expectedId, uint8_t expectedCmd, uint16_t timeout
 
   while (millis() - start < timeoutMs) {
     if (!RS485.available()) {
+      updateServos();
+      delayMicroseconds(100);
       continue;
     }
 
@@ -98,6 +103,9 @@ bool readMotorResponse(uint8_t expectedId, uint8_t expectedCmd, uint16_t timeout
     while (index < 4 && millis() - start < timeoutMs) {
       if (RS485.available()) {
         header[index++] = RS485.read();
+      } else {
+        updateServos();
+        delayMicroseconds(100);
       }
     }
 
@@ -121,6 +129,9 @@ bool readMotorResponse(uint8_t expectedId, uint8_t expectedCmd, uint16_t timeout
     while (index < payloadLen && millis() - start < timeoutMs) {
       if (RS485.available()) {
         payload[index++] = RS485.read();
+      } else {
+        updateServos();
+        delayMicroseconds(100);
       }
     }
 
@@ -128,6 +139,7 @@ bool readMotorResponse(uint8_t expectedId, uint8_t expectedCmd, uint16_t timeout
 
     if (payloadLen > 0) {
       while (!RS485.available() && millis() - start < timeoutMs) {
+        updateServos();
         delayMicroseconds(100);
       }
       if (!RS485.available()) return false;
@@ -222,14 +234,15 @@ void updateServos() {
   }
   lastServoUpdate = now;
 
-  for (uint8_t i = 0; i < SERVO_COUNT; i++) {
-    if (currentAngles[i] < targetAngles[i]) {
-      currentAngles[i]++;
-      writeServoAngle(i, currentAngles[i]);
-    } else if (currentAngles[i] > targetAngles[i]) {
-      currentAngles[i]--;
-      writeServoAngle(i, currentAngles[i]);
-    }
+  uint8_t i = nextServoToUpdate;
+  nextServoToUpdate = (uint8_t)((nextServoToUpdate + 1) % SERVO_COUNT);
+
+  if (currentAngles[i] < targetAngles[i]) {
+    currentAngles[i]++;
+    writeServoAngle(i, currentAngles[i]);
+  } else if (currentAngles[i] > targetAngles[i]) {
+    currentAngles[i]--;
+    writeServoAngle(i, currentAngles[i]);
   }
 }
 
