@@ -13,35 +13,37 @@
 ```
 esp32s3-arduino-zero-to-one-cn/
 ├── README.md              # 项目主页（你现在看的）
-├── docs/                  # 📚 教程文档
+├── 教程文档/              # 安装教程、板卡设置、使用指南
 │   ├── 00-05_*.md        # 安装教程、板卡设置、常见问题
 │   ├── 06_hardware_info.md       # 硬件资料说明
 │   ├── 07_motor_guide.md         # MG4010 电机使用指南
 │   └── 08_servo_guide.md         # 舵机使用指南
-├── examples/              # 💻 示例代码（从易到难）
-│   ├── 01_blink_external_led/    # LED 闪烁（最简单）
-│   ├── 02_serial_print/          # 串口输出
-│   ├── 03_wifi_ap_web_led/       # Wi-Fi 网页控制 LED
-│   ├── 04_servo_button_nonblocking/ # 舵机网页控制（非阻塞）
-│   ├── 05_servo_basic/           # 舵机基础控制（串口输入）
-│   ├── 06_mg4010_motor_basic/    # MG4010 电机基础控制
-│   └── 07_mg4010_motor_advanced/ # MG4010 电机进阶（网页+反馈）
-└── hardware/              # 🔧 硬件资料
-    ├── datasheets/        # 原理图、电机手册、协议文档
-    ├── drivers/           # CH340 驱动程序
-    └── models/            # 3D 模型（STEP 格式）
+├── 示例代码/              # 示例代码（从易到难）
+│   ├── 01_LED闪烁/                # LED 闪烁（最简单）
+│   ├── 02_串口调试/               # 串口输出
+│   ├── 03_舵机基础控制/           # 舵机串口控制
+│   ├── 04_舵机网页控制/           # 舵机网页控制（非阻塞）
+│   ├── 05_WiFi网页控制LED/        # Wi-Fi 网页控制 LED
+│   ├── 06_电机基础控制/           # MG4010 电机基础控制
+│   └── 07_电机进阶控制/           # MG4010 电机进阶（网页+反馈）
+└── 硬件资料/              # 硬件资料
+    ├── 技术文档/          # 原理图、电机手册、协议文档
+    ├── 驱动程序/          # CH340 驱动程序
+    └── 3D模型/            # 3D 模型（STEP 格式）
+        ├── 电机/          # MG4010 电机模型
+        └── 舵机/          # MG90S 舵机和舵盘模型
 ```
 
 ---
 
-## 开始之前
+## 课前准备（教师）
 
-如果你是带课的老师，建议提前准备一个”离线资源包”放 U 盘或课程群里，省得课上下载慢：
+建议提前准备"离线资源包"（U 盘或课程群文件），避免课上下载速度慢影响教学进度：
 
 - Arduino IDE 安装包
 - CH340/CH343 驱动安装包
-- 这个仓库的 ZIP 包
-- ESP32-S3 板子的引脚图（拍张照片也行）
+- 本仓库 ZIP 包
+- ESP32-S3 板子引脚图
 
 **重点**：国内装 ESP32 板卡包别用 GitHub 地址，用 Espressif 官方给的国内镜像：
 
@@ -55,7 +57,7 @@ https://jihulab.com/esp-mirror/espressif/arduino-esp32/-/raw/gh-pages/package_es
 
 ## 下载链接
 
-详细的看 [`docs/00_downloads_cn.md`](docs/00_downloads_cn.md)，这里列几个必需的：
+详细的看 [`教程文档/00_downloads_cn.md`](教程文档/00_downloads_cn.md)，这里列几个必需的：
 
 **Arduino IDE**  
 - 官方下载：https://www.arduino.cc/en/software
@@ -80,8 +82,8 @@ https://jihulab.com/esp-mirror/espressif/arduino-esp32/-/raw/gh-pages/package_es
 
 **注意**：安装路径别用中文，比如：
 
-✅ 可以：`D:\ArduinoIDE`  
-❌ 不行：`C:\Users\张三\桌面\Arduino`
+- 可以：`D:\ArduinoIDE`  
+- 不行：`C:\Users\张三\桌面\Arduino`
 
 中文路径有时候会出问题。
 
@@ -185,7 +187,7 @@ LED 短脚 → GND
 打开示例代码：
 
 ```
-examples/01_blink_external_led/01_blink_external_led.ino
+示例代码/01_LED闪烁/01_blink_external_led.ino
 ```
 
 点上传。如果 LED 每秒闪一次，说明环境搭好了。
@@ -194,42 +196,42 @@ examples/01_blink_external_led/01_blink_external_led.ino
 
 ## 例程列表
 
-所有例程都在 `examples/` 目录下，建议按顺序学：
+所有例程都在 `示例代码/` 目录下，建议按顺序学：
 
-1. **01_blink_external_led** - 外接 LED 闪烁  
+1. **01_LED闪烁** - 外接 LED 闪烁  
    最简单的例程，验证环境搭好了没
 
-2. **02_serial_print** - 串口输出  
+2. **02_串口调试** - 串口输出  
    学会用 Serial.println 调试
 
-3. **03_wifi_ap_web_led** - Wi-Fi 网页控制 LED  
-   手机连 ESP32 热点，网页控制 LED 开关
+3. **03_舵机基础控制** - 舵机基础控制  
+   串口输入角度，舵机平滑转动
 
-4. **04_servo_button_nonblocking** - 舵机网页控制  
+4. **04_舵机网页控制** - 舵机网页控制  
    网页按钮控制舵机角度，学习非阻塞编程
 
-5. **05_servo_basic** - 舵机基础控制  
-   串口输入角度，舵机平滑转动（比 04 简单）
+5. **05_WiFi网页控制LED** - Wi-Fi 网页控制 LED  
+   手机连 ESP32 热点，网页控制 LED 开关
 
-6. **06_mg4010_motor_basic** - MG4010 电机基础  
+6. **06_电机基础控制** - MG4010 电机基础  
    RS485 通信控制瓴控电机，速度控制
 
-7. **07_mg4010_motor_advanced** - MG4010 电机进阶  
+7. **07_电机进阶控制** - MG4010 电机进阶  
    位置控制、实时反馈、网页控制界面
 
-**新手建议**：先把 01-04 跑通，舵机和电机控制需要额外硬件。
+**新手建议**：先把 01-03 跑通，网页控制和电机需要额外硬件。
 
 ---
 
 ## 硬件资料
 
-`hardware/` 目录下有开发板和电机的技术资料：
+`硬件资料/` 目录下有开发板和电机的技术资料：
 
-- **datasheets/** - ESP32-S3 原理图、MG4010 电机手册和协议文档
-- **drivers/** - CH340/CH341 USB 转串口驱动（Windows）
-- **models/** - MG4010 电机 3D 模型（STEP 格式，设计机械结构用）
+- **技术文档/** - ESP32-S3 原理图、MG4010 电机手册和协议文档
+- **驱动程序/** - CH340/CH341 USB 转串口驱动（Windows）
+- **3D模型/** - MG4010 电机和 MG90S 舵机的 3D 模型（STEP 格式，设计机械结构用）
 
-详细说明看 [`hardware/README.md`](hardware/README.md)
+详细说明看 [`硬件资料/README.md`](硬件资料/README.md)
 
 ---
 
@@ -240,7 +242,7 @@ examples/01_blink_external_led/01_blink_external_led.ino
 - **认串口**（10 分钟）：设备管理器看 COM 口、装驱动
 - **第一个程序**（20 分钟）：外接 LED 闪烁
 - **串口输出**（15 分钟）：Serial.begin、Serial.println
-- **Wi-Fi 网页控制**（30 分钟）：手机连 ESP32 热点，网页控制 LED
+- **舵机或网页控制**（30 分钟）：二选一，看课程重点
 - **排错时间**（20 分钟）：处理各种找不到端口、上传失败的问题
 
 ---
@@ -312,4 +314,3 @@ examples/01_blink_external_led/01_blink_external_led.ino
 - Espressif Arduino-ESP32 安装文档：https://docs.espressif.com/projects/arduino-esp32/en/latest/installing.html
 - WCH CH340/CH341 驱动：https://www.wch.cn/downloads/CH341SER_EXE.html
 - WCH CH343 驱动：https://www.wch.cn/downloads/CH343SER_EXE.html
-

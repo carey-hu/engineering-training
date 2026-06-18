@@ -2,18 +2,20 @@
 
 这里放了开发板和配件的技术资料。
 
-## 📂 目录结构
+## 目录结构
 
 ```
-hardware/
-├── datasheets/     # 数据手册和技术文档
-├── drivers/        # 驱动程序
-└── models/         # 3D 模型文件
+硬件资料/
+├── 技术文档/     # 数据手册和原理图
+├── 驱动程序/     # USB转串口驱动
+└── 3D模型/       # 三维模型文件
+    ├── 电机/     # MG4010电机模型
+    └── 舵机/     # MG90S舵机和舵盘模型
 ```
 
 ---
 
-## 📄 数据手册 (datasheets/)
+## 技术文档
 
 ### ESP32-S3 开发板
 
@@ -44,7 +46,7 @@ hardware/
 
 ---
 
-## 🔌 驱动程序 (drivers/)
+## 驱动程序
 
 ### CH341SER.EXE
 
@@ -64,18 +66,33 @@ WCH CH340/CH341 USB 转串口芯片的 Windows 驱动。
 **注意**：
 - Windows 10/11 一般能自动识别，不需要手动装
 - 如果板子用的是 CH343 芯片，需要装 CH343 的驱动（不在这个包里，去 [WCH 官网](https://www.wch.cn/downloads/CH343SER_EXE.html) 下）
-- macOS 用户看 `docs/02_install_macos.md`
+- macOS 用户看 `教程文档/02_install_macos.md`
 
 ---
 
-## 🎨 3D 模型 (models/)
+## 3D 模型
 
-### MG4010-i10.STEP
+### 电机模型
 
-MG4010 电机的三维模型，STEP 格式。
+- **MG4010-i10.STEP**  
+  MG4010 电机的三维模型，STEP 格式。
+
+### 舵机模型
+
+- **Tower Pro MG90S Micro servo.STEP**  
+  MG90S 舵机主体模型
+
+- **Unidirectional shoulder.STEP**  
+  单向舵盘
+
+- **Bidirectional shoulder.STEP**  
+  双向舵盘
+
+- **Four directed shoulder.STEP**  
+  四向舵盘
 
 **用来干嘛**：
-- 设计机器人或机械结构时，确认电机安装位置和尺寸
+- 设计机器人或机械结构时，确认安装位置和尺寸
 - 检查螺丝孔位置对不对
 - 做机械仿真
 - 3D 打印配套的固定支架
@@ -87,14 +104,14 @@ MG4010 电机的三维模型，STEP 格式。
 - Onshape（在线版，免费）
 
 **不需要的情况**：
-- 只是写代码控制电机，不用管 3D 模型
+- 只是写代码控制电机/舵机，不用管 3D 模型
 - 学校实验课一般用不到
 
 ---
 
-## 📚 更多资料
+## 更多资料
 
-- **开发板引脚图**：见 `docs/06_hardware_info.md`
-- **驱动安装详细教程**：见 `docs/01_install_windows.md`
-- **电机使用指南**：见 `docs/07_motor_guide.md`
-- **舵机使用指南**：见 `docs/08_servo_guide.md`
+- **开发板引脚图**：见 `教程文档/06_hardware_info.md`
+- **驱动安装详细教程**：见 `教程文档/01_install_windows.md`
+- **电机使用指南**：见 `教程文档/07_motor_guide.md`
+- **舵机使用指南**：见 `教程文档/08_servo_guide.md`
