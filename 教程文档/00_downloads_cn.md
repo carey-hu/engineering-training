@@ -22,7 +22,19 @@ https://www.arduino.cc/en/software
 
 ---
 
-## 2. ESP32 Arduino 板卡包：国内镜像
+## 2. 开发板资料页
+
+本教程使用的新陆城 2003-ESP32S3 开发板资料页：
+
+```text
+https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
+```
+
+资料页包含原理图、参考例程、软件下载、引脚定义、出厂固件和注意事项。遇到开发板引脚、板载灯、5V-IN、PSRAM 或烧录问题时，可以先查这个页面。
+
+---
+
+## 3. ESP32 Arduino 板卡包：国内镜像
 
 在 Arduino IDE 的“其他开发板管理器地址”中填入：
 
@@ -38,7 +50,7 @@ https://jihulab.com/esp-mirror/espressif/arduino-esp32/-/raw/gh-pages/package_es
 
 ---
 
-## 3. USB 串口驱动
+## 4. USB 串口驱动
 
 ### CH340 / CH341 驱动
 
@@ -66,7 +78,7 @@ https://www.wch.cn/downloads/ch34xser_mac_zip.html
 
 ---
 
-## 4. 建议提前准备的资源
+## 5. 建议提前准备的资源
 
 ```text
 Arduino IDE 安装包

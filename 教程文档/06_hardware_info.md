@@ -27,28 +27,52 @@ GPIO：最多 45 个可编程 GPIO 引脚
 
 ---
 
-### 开发板常见配置（以新陆城 xinlucity 开发板为例）
+### 开发板常见配置（以新陆城 2003-ESP32S3 开发板为例）
 
-本课程使用的 ESP32-S3 开发板通常会包含以下配置：
+本教程使用的新陆城 2003-ESP32S3 开发板资料页：
+
+```text
+https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
+```
+
+该资料页包含原理图、参考例程、开发软件下载、引脚定义、出厂固件和注意事项等。遇到开发板硬件问题时，优先对照这份资料。
+
+开发板通常会包含以下配置：
 
 ```text
 芯片：ESP32-S3-WROOM-1 或 ESP32-S3-WROOM-2 模组
 Flash：8MB 或 16MB
-PSRAM：2MB 或 8MB（部分型号）
+PSRAM：N16R8 型号带 8MB PSRAM
 USB 转串口芯片：CH340G / CH343P（部分型号）
 原生 USB：支持（通过 ESP32-S3 芯片自带的 USB 功能）
 按键：BOOT + EN（复位键）
-LED：板载电源指示灯 + 可编程 LED（GPIO 位置看具体型号）
+LED：电源指示灯、TX/RX 串口灯、板载 RGB（WS2812）
 引脚引出：双排排针，方便面包板插接
-供电：USB 供电（5V），板上 3.3V 稳压输出
+供电：USB 供电（5V），板上 3.3V 稳压输出，5V-IN 默认不作为外设供电输出
 尺寸：约 55mm × 28mm（标准开发板尺寸）
 ```
 
 **注意事项：**
 
-- 不同批次的开发板，板载 LED 引脚可能不同（有的是 GPIO2，有的是 GPIO48）
-- 部分开发板没有外置 USB 转串口芯片，直接用 ESP32-S3 的原生 USB
+- 板载 RGB 是 WS2812 单总线 RGB 灯，资料页标注由 GPIO48 控制。
+- 电源灯不可由程序控制；TX/RX 串口灯对应 GPIO43、GPIO44，用于串口状态指示。
+- 5V-IN 引脚默认不向外供电；不要把它当作舵机或模块的 5V 输出使用。
 - 引脚丝印（引脚标注）要看清楚，别接错 3.3V 和 GND
+
+---
+
+### 新陆城开发板关键注意事项
+
+| 项目 | 说明 |
+|------|------|
+| 5V-IN | 默认不向外供电；如果需要 5V 输出，需要按资料页说明短接焊盘。机器人项目中舵机仍建议使用独立 5V 电源。 |
+| 板载 RGB | WS2812 单总线 RGB 灯，控制引脚为 GPIO48。 |
+| TX/RX 指示灯 | TX/RX 串口灯对应 GPIO43、GPIO44，主要用于调试和下载状态。 |
+| Flash/PSRAM 引脚 | GPIO34-GPIO37 为板载 Flash/PSRAM 专用引脚，不要当普通 IO 使用。 |
+| ADC 与 Wi-Fi | Wi-Fi 开启时 ADC2 通道不可用；需要模拟输入时优先使用 ADC1。 |
+| 下载模式 | GPIO0 为启动配置引脚，拉低会进入下载模式。 |
+| PSRAM | N16R8 型号带 8MB PSRAM，Arduino IDE 中按实际菜单启用 OPI PSRAM 或对应选项。 |
+| 外部串口 | GPIO43/GPIO44 属于 UART0 调试/下载用途；外接 RS485 等模块建议使用 GPIO17/GPIO18。 |
 
 ---
 
@@ -99,6 +123,16 @@ LED：板载电源指示灯 + 可编程 LED（GPIO 位置看具体型号）
 如果不亮，检查 USB 线和接口
 ```
 
+#### 板载 RGB 灯
+
+```text
+类型：WS2812 单总线 RGB 灯
+控制引脚：GPIO48
+说明：需要使用 NeoPixel / WS2812 类库或对应时序代码控制
+```
+
+如果只是验证开发环境，仍建议优先使用外接 LED。外接 LED 的接线更直观，不会受到板载 RGB 驱动方式影响。
+
 ---
 
 #### GPIO 引脚（排针）
@@ -120,6 +154,8 @@ TX/RX：串口通信引脚
 SDA/SCL：I2C 通信引脚
 MOSI/MISO/SCK：SPI 通信引脚
 ```
+
+注意：并不是所有标出来的 GPIO 都适合当普通 IO。GPIO34-GPIO37 属于板载 Flash/PSRAM 专用引脚，GPIO0、GPIO45、GPIO46 属于启动配置相关引脚，GPIO43/GPIO44 常用于 UART0 调试/下载。做项目时优先使用教程示例里已经验证过的 GPIO。
 
 ---
 
@@ -403,8 +439,9 @@ Inventor
 
 ```text
 1. 看开发板背面或正面的丝印（印在 PCB 上的引脚标注）
-2. 查 ESP32-S3 官方引脚定义：https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/hw-reference/esp32s3/user-guide-devkitc-1.html
-3. 拍张开发板照片，用画图软件标注引脚，打印出来贴在桌子上
+2. 查新陆城开发板资料页：https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
+3. 查 ESP32-S3 官方引脚定义：https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/hw-reference/esp32s3/user-guide-devkitc-1.html
+4. 拍张开发板照片，用画图软件标注引脚，打印出来贴在桌子上
 ```
 
 **建议你自己准备一张引脚速查图：**
@@ -423,16 +460,18 @@ Inventor
 
 **原因：** 某些引脚是启动引脚（Strapping Pins），上电时电平状态会影响启动模式。
 
-**避免使用的引脚：**
+**避免或谨慎使用的引脚：**
 
 ```text
 GPIO0：启动模式选择
 GPIO3：JTAG 引脚
+GPIO34-GPIO37：板载 Flash/PSRAM 专用引脚
 GPIO45：VDD_SPI 电压选择
 GPIO46：启动模式选择
+GPIO43/GPIO44：UART0 调试/下载相关引脚
 ```
 
-**建议：** 用 GPIO2、GPIO4、GPIO5 等普通 GPIO 做实验。
+**建议：** 用 GPIO2、GPIO4、GPIO5、GPIO10-GPIO18 等已在教程中验证过的普通 GPIO 做实验。实际使用前仍要对照开发板丝印和资料页。
 
 ---
 
@@ -450,15 +489,28 @@ GPIO46：启动模式选择
 
 ---
 
-### 问题 3：板载 LED 不亮
+### 问题 3：5V-IN 能不能给外设供电？
+
+新陆城资料页说明，5V-IN 引脚默认不向外供电。这样设计是为了避免直接从核心板取电影响 ESP32 稳定运行。
+
+```text
+不建议：用 5V-IN 给舵机、电机或大电流模块供电
+建议：舵机使用独立 5V 电源，电机使用独立 12V~24V 电源，并与 ESP32 共地
+```
+
+如果确实需要 5V 输出，应按开发板资料页说明处理焊盘，并确认负载电流不会影响开发板稳定运行。
+
+---
+
+### 问题 4：板载 LED 不亮
 
 **检查项：**
 
 ```text
-1. 代码里的引脚号对吗？（不同板子 LED 引脚不同）
+1. 代码里的引脚号对吗？新陆城板载 RGB 为 WS2812，控制引脚是 GPIO48。
 2. pinMode 设置对了吗？（应该是 OUTPUT）
 3. digitalWrite 写的是 HIGH 还是 LOW？（有些板子 LED 是低电平点亮）
-4. 板子上真的有可编程 LED 吗？（有些板子只有电源指示灯）
+4. 板子上的电源灯不可由程序控制，TX/RX 灯主要反映串口状态。
 ```
 
 **调试方法：**
@@ -470,7 +522,7 @@ GPIO46：启动模式选择
 
 ---
 
-### 问题 4：开发板发烫
+### 问题 5：开发板发烫
 
 **正常情况：**
 
@@ -521,8 +573,8 @@ ESP32-S3 工作时会发热，尤其是跑 Wi-Fi 或高频运算时
 
 | 功能 | ESP32-S3 资源 | 本教程默认引脚 |
 |------|---------------|----------------|
-| RS485 TX | UART2 TX | GPIO17 |
-| RS485 RX | UART2 RX | GPIO18 |
+| RS485 TX | 硬件串口 TX | GPIO17 |
+| RS485 RX | 硬件串口 RX | GPIO18 |
 | RS485 DE/RE | 普通数字输出 | GPIO16 |
 | 舵机 1 | LEDC PWM | GPIO10 |
 | 舵机 2 | LEDC PWM | GPIO11 |

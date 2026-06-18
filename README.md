@@ -6,6 +6,9 @@
 
 **硬件说明**：本教程按已配发的 ESP32-S3 开发板、MG4010-i10 RS485 电机和 PWM 舵机组织内容，重点放在环境搭建、硬件认识、驱动控制和机器人项目整合。
 
+**开发板资料**：本教程使用的新陆城 2003-ESP32S3 开发板资料页：
+https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
+
 ---
 
 ## 这里有什么
@@ -241,6 +244,7 @@ LED 短脚 → GND
 
 | 资源 | 链接 |
 |------|------|
+| 新陆城 2003-ESP32S3 开发板资料页 | [芯路城资料页](https://www.xinlucity.com/?s=resourcedetail/index/id/61.html) |
 | ESP32-S3 原理图 | [ESP32-S3原理图.pdf](硬件资料/技术文档/ESP32-S3原理图.pdf) |
 | MG4010-i10 电机手册 | [MG4010-i10电机手册.pdf](硬件资料/技术文档/MG4010-i10电机手册.pdf) |
 | MG4010-i10 RS485 协议 | [MG4010-i10-R485协议.pdf](硬件资料/技术文档/MG4010-i10-R485协议.pdf) |
