@@ -1,4 +1,4 @@
-# ESP32-S3 Arduino 从零搭建开发环境（国内课堂版）
+# ESP32-S3 Arduino 从零搭建开发环境
 
 这是一套给零基础学生准备的 ESP32-S3 开发板入门教程，适合工程训练课、机器人课或者自学。
 
@@ -16,7 +16,7 @@
 
 ---
 
-## 开始之前（老师看）
+## 开始之前
 
 如果你是带课的老师，建议提前准备一个”离线资源包”放 U 盘或课程群里，省得课上下载慢：
 
@@ -40,8 +40,8 @@ https://jihulab.com/esp-mirror/espressif/arduino-esp32/-/raw/gh-pages/package_es
 详细的看 [`docs/00_downloads_cn.md`](docs/00_downloads_cn.md)，这里列几个必需的：
 
 **Arduino IDE**  
-- 官方下载：https://www.arduino.cc/en/software（如果你能打开的话）
-- 国内备用：https://arduino.me/download（非官方中文站，版本可能旧一点）
+- 官方下载：https://www.arduino.cc/en/software
+- 国内备用：https://arduino.me/download
 
 **ESP32 板卡包地址（国内镜像）**  
 ```
