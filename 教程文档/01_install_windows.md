@@ -97,7 +97,7 @@ Upload Speed: 460800
 USB CDC On Boot: Enabled
 ```
 
-上传 `examples/01_blink_external_led`。
+上传 `示例代码/01_LED闪烁/01_blink_external_led.ino`。
 
 若失败：
 

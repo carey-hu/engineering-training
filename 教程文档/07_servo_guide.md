@@ -442,7 +442,7 @@ void loop() {
 - 理解 `constrain()` 限制范围
 - 学会用串口调试硬件
 
-**参考示例**：`examples/05_servo_basic/`
+**参考示例**：`示例代码/03_舵机基础控制/`
 
 ---
 
@@ -507,7 +507,7 @@ void loop() {
 - 掌握非阻塞编程思想
 - 学会用状态变量（`currentAngle`、`targetAngle`）
 
-**参考示例**：`examples/05_servo_basic/`
+**参考示例**：`示例代码/03_舵机基础控制/`
 
 ---
 
@@ -579,7 +579,7 @@ function setServo(angle) {
 - 理解 HTTP GET 请求传参
 - 学会网页 JavaScript 与 ESP32 通信
 
-**参考示例**：`examples/04_servo_button_nonblocking/`
+**参考示例**：`示例代码/05_舵机网页控制/`
 
 ---
 
@@ -724,8 +724,8 @@ function updateServo() {
 ## 9. 参考资源
 
 - **本仓库示例代码**：
-  - `examples/05_servo_basic/` - 基础舵机控制
-  - `examples/04_servo_button_nonblocking/` - 网页按钮控制
+  - `示例代码/03_舵机基础控制/` - 基础舵机控制
+  - `示例代码/05_舵机网页控制/` - 网页按钮控制
 
 - **ESP32-S3 官方文档**：
   - [LEDC PWM 控制器](https://docs.espressif.com/projects/arduino-esp32/en/latest/api/ledc.html)
@@ -737,4 +737,3 @@ function updateServo() {
 
 **编写日期**：2026-06-18  
 **适用对象**：零基础学生、工程训练课、机器人课堂
-
