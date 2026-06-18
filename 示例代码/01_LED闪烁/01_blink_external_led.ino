@@ -6,7 +6,7 @@
   LED短脚 → GND
 
   说明：
-  不同 ESP32-S3 开发板的板载 LED 引脚不统一，课堂教学建议使用外接 LED。
+  不同 ESP32-S3 开发板的板载 LED 引脚不统一，建议先使用外接 LED。
 */
 
 const int LED_PIN = 2;

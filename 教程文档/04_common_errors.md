@@ -95,7 +95,7 @@ D:\ArduinoProjects\esp32s3_class
 
 ## 6. Web 控制卡顿
 
-教学项目里，如果用网页滑块控制舵机，可能高频发送请求导致 WebServer 阻塞。
+项目练习里，如果用网页滑块控制舵机，可能高频发送请求导致 WebServer 阻塞。
 
 建议：
 

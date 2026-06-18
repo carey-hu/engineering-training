@@ -2,7 +2,7 @@
   ESP32-S3 示例 07：MG4010-i10 速度闭环控制
 
   使用厂家 RS485 私有协议，速度闭环命令为 0xA2。
-  学生输入的是输出轴速度，单位 dps（degree per second，度/秒）。
+  串口中输入的是输出轴速度，单位 dps（degree per second，度/秒）。
   MG4010-i10 减速比为 1:10，因此协议中的电机侧速度 = 输出轴速度 * 10。
   协议单位为 0.01dps/LSB，因此 raw = 输出轴 dps * 10 * 100。
 
@@ -179,7 +179,7 @@ void printHelp() {
   Serial.println("t     停止");
   Serial.println("s     读取状态");
   Serial.println("h     帮助");
-  Serial.println("建议课堂首次测试从 30 到 60 dps 开始。");
+  Serial.println("建议首次测试从 30 到 60 dps 开始。");
   Serial.println("==================================");
   Serial.println();
 }
