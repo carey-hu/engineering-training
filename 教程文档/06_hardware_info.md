@@ -27,9 +27,9 @@ GPIO：最多 45 个可编程 GPIO 引脚
 
 ---
 
-### 开发板常见配置（以新陆城 2003-ESP32S3 开发板为例）
+### 开发板常见配置（以 ESP32-S3 开发板为例）
 
-本教程使用的新陆城 2003-ESP32S3 开发板资料页：
+本教程使用的 ESP32 开发板资料页：
 
 ```text
 https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
@@ -61,7 +61,7 @@ LED：电源指示灯、TX/RX 串口灯、板载 RGB（WS2812）
 
 ---
 
-### 新陆城开发板关键注意事项
+### ESP32 开发板关键注意事项
 
 | 项目 | 说明 |
 |------|------|
@@ -439,7 +439,7 @@ Inventor
 
 ```text
 1. 看开发板背面或正面的丝印（印在 PCB 上的引脚标注）
-2. 查新陆城开发板资料页：https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
+2. 查 ESP32 开发板资料页：https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
 3. 查 ESP32-S3 官方引脚定义：https://docs.espressif.com/projects/esp-idf/zh_CN/latest/esp32s3/hw-reference/esp32s3/user-guide-devkitc-1.html
 4. 拍张开发板照片，用画图软件标注引脚，打印出来贴在桌子上
 ```
@@ -491,7 +491,7 @@ GPIO43/GPIO44：UART0 调试/下载相关引脚
 
 ### 问题 3：5V-IN 能不能给外设供电？
 
-新陆城资料页说明，5V-IN 引脚默认不向外供电。这样设计是为了避免直接从核心板取电影响 ESP32 稳定运行。
+ESP32 开发板资料页说明，5V-IN 引脚默认不向外供电。这样设计是为了避免直接从核心板取电影响 ESP32 稳定运行。
 
 ```text
 不建议：用 5V-IN 给舵机、电机或大电流模块供电
@@ -507,7 +507,7 @@ GPIO43/GPIO44：UART0 调试/下载相关引脚
 **检查项：**
 
 ```text
-1. 代码里的引脚号对吗？新陆城板载 RGB 为 WS2812，控制引脚是 GPIO48。
+1. 代码里的引脚号对吗？本教程使用的 ESP32 开发板板载 RGB 为 WS2812，控制引脚是 GPIO48。
 2. pinMode 设置对了吗？（应该是 OUTPUT）
 3. digitalWrite 写的是 HIGH 还是 LOW？（有些板子 LED 是低电平点亮）
 4. 板子上的电源灯不可由程序控制，TX/RX 灯主要反映串口状态。

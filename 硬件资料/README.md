@@ -19,7 +19,7 @@
 
 ### ESP32-S3 开发板
 
-- [新陆城 2003-ESP32S3 开发板资料页](https://www.xinlucity.com/?s=resourcedetail/index/id/61.html)
+- [ESP32 开发板资料页](https://www.xinlucity.com/?s=resourcedetail/index/id/61.html)
   开发板在线资料入口，包含原理图、参考例程、软件下载、引脚定义、出厂固件和注意事项等。
 
 - [ESP32-S3原理图.pdf](技术文档/ESP32-S3原理图.pdf)

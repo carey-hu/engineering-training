@@ -24,7 +24,7 @@ https://www.arduino.cc/en/software
 
 ## 2. 开发板资料页
 
-本教程使用的新陆城 2003-ESP32S3 开发板资料页：
+本教程使用的 ESP32 开发板资料页：
 
 ```text
 https://www.xinlucity.com/?s=resourcedetail/index/id/61.html

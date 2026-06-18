@@ -26,7 +26,7 @@ PSRAM: 有则 Enabled，无则 Disabled
 USB CDC On Boot: Enabled
 ```
 
-如果使用的是新陆城 2003-ESP32S3 N16R8 开发板，资料页说明该核心板带 8MB PSRAM。Arduino IDE 中通常需要把 PSRAM 设为 `OPI PSRAM` 或对应的 Enabled 选项。菜单名称会随 Arduino-ESP32 版本略有不同，实操时以 IDE 中显示的选项为准。
+如果使用的是本教程对应的 ESP32-S3 N16R8 开发板，资料页说明该核心板带 8MB PSRAM。Arduino IDE 中通常需要把 PSRAM 设为 `OPI PSRAM` 或对应的 Enabled 选项。菜单名称会随 Arduino-ESP32 版本略有不同，实操时以 IDE 中显示的选项为准。
 
 ---
 
@@ -59,7 +59,7 @@ CH340 / CH343 / CP2102
 
 这种板子通常会出现普通 COM 口，上传比较接近传统 ESP32 开发板。
 
-新陆城资料页提示，UART0 的 GPIO43/GPIO44 用于调试和下载，不建议再接外部模块。本教程的 RS485 示例默认使用 GPIO17/GPIO18 连接外部 RS485 模块。
+ESP32 开发板资料页提示，UART0 的 GPIO43/GPIO44 用于调试和下载，不建议再接外部模块。本教程的 RS485 示例默认使用 GPIO17/GPIO18 连接外部 RS485 模块。
 
 ---
 
