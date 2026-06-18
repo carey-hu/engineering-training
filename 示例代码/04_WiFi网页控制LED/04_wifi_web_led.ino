@@ -2,8 +2,12 @@
   ESP32-S3 示例 04：手机连接 ESP32 热点，用网页控制 LED
 
   接线：
-  GPIO2 → 220Ω电阻 → LED长脚
+  ESP32-S3 GPIO2 → 220Ω电阻 → LED长脚
   LED短脚 → GND
+
+  说明：
+  GPIO2 已在本教程使用的 ESP32 开发板排针上引出，适合接外部 LED。
+  板载 RGB 灯为 WS2812，控制脚 GPIO48，不使用本例程的 digitalWrite() 控制方式。
 
   使用：
   1. 上传程序

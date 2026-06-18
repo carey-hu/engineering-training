@@ -11,6 +11,9 @@
   RS485 A              -> 电机 A/H（RS485-A）
   RS485 B              -> 电机 B/L（RS485-B）
 
+  GPIO17、GPIO18、GPIO16 均已在本教程使用的 ESP32 开发板排针上引出，
+  可以按上表直接接到 RS485 模块。
+
   电机需要 12V~24V 独立电源供电，首次测试建议使用 24V 2A 以上。
 
   串口命令：
@@ -26,9 +29,9 @@
 
 #include <HardwareSerial.h>
 
-#define RS485_TX      17
-#define RS485_RX      18
-#define RS485_DE_RE   16
+#define RS485_TX      17   // 排针已引出，接 RS485 模块 DI
+#define RS485_RX      18   // 排针已引出，接 RS485 模块 RO
+#define RS485_DE_RE   16   // 排针已引出，接 RS485 模块 DE 和 RE
 
 #define MOTOR_ID      0x01
 #define RS485_BAUD    115200

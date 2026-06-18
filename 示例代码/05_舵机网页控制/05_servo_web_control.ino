@@ -13,6 +13,7 @@
   舵机黄/橙线 → ESP32 GPIO13
 
   注意：舵机不要直接从 ESP32 3.3V 供电。
+  GPIO13 已在本教程使用的 ESP32 开发板排针上引出，可以直接接舵机信号线。
 */
 
 #include <WiFi.h>
@@ -23,7 +24,7 @@ const char* password = "12345678";
 
 WebServer server(80);
 
-const int SERVO_PIN = 13;
+const int SERVO_PIN = 13;        // 舵机信号线接 GPIO13，排针已引出
 const int PWM_FREQ = 50;         // 舵机常用 50Hz
 const int PWM_RESOLUTION = 16;   // 16 位分辨率
 

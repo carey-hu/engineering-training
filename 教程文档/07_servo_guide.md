@@ -99,6 +99,8 @@ ESP32-S3 通过 **LEDC（LED PWM 控制器）** 生成 PWM 信号。
 
 ### 4.2 代码实现
 
+本教程单舵机例程默认使用 GPIO13。该引脚在 ESP32 开发板排针上已引出，可以直接接舵机信号线。最终机器人工程会扩展为 GPIO10、GPIO11、GPIO12、GPIO13 四路舵机信号。
+
 ```cpp
 const int SERVO_PIN = 13;          // 舵机信号线接 GPIO13
 const int PWM_FREQ = 50;           // 频率 50Hz

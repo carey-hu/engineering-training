@@ -9,6 +9,16 @@
 **开发板资料**：本教程使用的 ESP32 开发板资料页：
 https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
 
+**默认接线引脚**：已根据 ESP32-S3 开发板原理图核对，下面这些 GPIO 都从排针引出，适合本教程直接插线使用。
+
+| 功能 | 默认 GPIO | 接线用途 |
+|------|-----------|----------|
+| 外接 LED | GPIO2 | GPIO2 → 220Ω 电阻 → LED 长脚，LED 短脚 → GND |
+| RS485 TX | GPIO17 | 接 RS485 模块 DI |
+| RS485 RX | GPIO18 | 接 RS485 模块 RO |
+| RS485 DE/RE | GPIO16 | 接 RS485 模块 DE 和 RE，两个脚并在一起 |
+| 舵机 1-4 | GPIO10、GPIO11、GPIO12、GPIO13 | 只接舵机信号线，舵机电源使用独立 5V |
+
 ---
 
 ## 这里有什么
@@ -175,7 +185,7 @@ Partition Scheme: Default
 
 ## 第一个程序：让 LED 闪起来
 
-建议先用外接 LED，因为不同 ESP32-S3 板子的板载 LED 引脚不一样，容易搞混。
+建议先用外接 LED。本教程使用的 ESP32 开发板板载 RGB 灯是 WS2812，控制脚为 GPIO48，需要专用驱动时序；外接 LED 使用原理图中已引出的 GPIO2，更适合作为第一个实验。
 
 **接线：**
 

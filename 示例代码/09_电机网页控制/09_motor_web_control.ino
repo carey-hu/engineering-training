@@ -10,6 +10,10 @@
   - 0x92 读取多圈角度
 
   网页中输入的速度和角度均指输出轴。代码按 i10 减速比换算为电机侧协议值。
+
+  RS485 接线：
+  GPIO17 -> RS485 DI，GPIO18 -> RS485 RO，GPIO16 -> RS485 DE 和 RE。
+  这三个 GPIO 均已在本教程使用的 ESP32 开发板排针上引出。
 */
 
 #include <WiFi.h>
@@ -20,9 +24,9 @@ const char *ssid = "ESP32S3_MOTOR";
 const char *password = "12345678";
 WebServer server(80);
 
-#define RS485_TX      17
-#define RS485_RX      18
-#define RS485_DE_RE   16
+#define RS485_TX      17   // 排针已引出，接 RS485 模块 DI
+#define RS485_RX      18   // 排针已引出，接 RS485 模块 RO
+#define RS485_DE_RE   16   // 排针已引出，接 RS485 模块 DE 和 RE
 
 #define MOTOR_ID      0x01
 #define RS485_BAUD    115200

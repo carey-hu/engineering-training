@@ -8,6 +8,10 @@
   位置 angleControl：0.01 degree/LSB，int64_t，电机侧角度
   速度 maxSpeed：0.01 dps/LSB，uint32_t，电机侧速度
 
+  接线与 06 基础控制例程相同：
+  GPIO17 -> RS485 DI，GPIO18 -> RS485 RO，GPIO16 -> RS485 DE 和 RE。
+  这三个 GPIO 均已在本教程使用的 ESP32 开发板排针上引出。
+
   串口命令：
   数字       设置输出轴目标角度，如 90
   p 数字     同上
@@ -21,9 +25,9 @@
 
 #include <HardwareSerial.h>
 
-#define RS485_TX      17
-#define RS485_RX      18
-#define RS485_DE_RE   16
+#define RS485_TX      17   // 排针已引出，接 RS485 模块 DI
+#define RS485_RX      18   // 排针已引出，接 RS485 模块 RO
+#define RS485_DE_RE   16   // 排针已引出，接 RS485 模块 DE 和 RE
 
 #define MOTOR_ID      0x01
 #define RS485_BAUD    115200

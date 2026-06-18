@@ -14,6 +14,11 @@
   2. 电机使用独立 12V~24V 电源，舵机使用独立 5V 电源。
   3. ESP32 GND、RS485 GND、电机电源负极、舵机电源负极必须共地。
   4. 不要在主循环中使用长时间 delay()。
+
+  默认接线：
+  RS485：GPIO17 -> DI，GPIO18 -> RO，GPIO16 -> DE 和 RE。
+  舵机：GPIO10、GPIO11、GPIO12、GPIO13 分别接四路舵机信号线。
+  以上 GPIO 均已在本教程使用的 ESP32 开发板排针上引出。
 */
 
 #include <Arduino.h>
@@ -21,9 +26,9 @@
 
 // ==================== 1. 引脚和硬件参数 ====================
 
-#define RS485_TX      17
-#define RS485_RX      18
-#define RS485_DE_RE   16
+#define RS485_TX      17   // 排针已引出，接 RS485 模块 DI
+#define RS485_RX      18   // 排针已引出，接 RS485 模块 RO
+#define RS485_DE_RE   16   // 排针已引出，接 RS485 模块 DE 和 RE
 #define RS485_BAUD    115200
 
 const uint8_t LEFT_MOTOR_ID = 1;
@@ -31,7 +36,7 @@ const uint8_t RIGHT_MOTOR_ID = 2;
 const float GEAR_RATIO = 10.0f;  // MG4010-i10：电机侧角度/速度 = 输出轴角度/速度 * 10
 
 const int SERVO_COUNT = 4;
-const int SERVO_PINS[SERVO_COUNT] = {10, 11, 12, 13};
+const int SERVO_PINS[SERVO_COUNT] = {10, 11, 12, 13};  // 四路舵机信号线，排针均已引出
 const int PWM_FREQ = 50;
 const int PWM_RESOLUTION = 16;
 const int SERVO_MIN_US = 500;
