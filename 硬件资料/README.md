@@ -74,21 +74,21 @@ WCH CH340/CH341 USB 转串口芯片的 Windows 驱动。
 
 ### 电机模型
 
-- **MG4010-i10.STEP**  
+- **MG4010-i10电机.STEP**  
   MG4010 电机的三维模型，STEP 格式。
 
 ### 舵机模型
 
-- **Tower Pro MG90S Micro servo.STEP**  
+- **MG90S舵机主体.STEP**  
   MG90S 舵机主体模型
 
-- **Unidirectional shoulder.STEP**  
+- **单向舵盘.STEP**  
   单向舵盘
 
-- **Bidirectional shoulder.STEP**  
+- **双向舵盘.STEP**  
   双向舵盘
 
-- **Four directed shoulder.STEP**  
+- **四向舵盘.STEP**  
   四向舵盘
 
 **用来干嘛**：
@@ -113,5 +113,5 @@ WCH CH340/CH341 USB 转串口芯片的 Windows 驱动。
 
 - **开发板引脚图**：见 `教程文档/06_hardware_info.md`
 - **驱动安装详细教程**：见 `教程文档/01_install_windows.md`
-- **电机使用指南**：见 `教程文档/07_motor_guide.md`
-- **舵机使用指南**：见 `教程文档/08_servo_guide.md`
+- **舵机使用指南**：见 `教程文档/07_servo_guide.md`
+- **电机使用指南**：见 `教程文档/08_motor_guide.md`
