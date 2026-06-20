@@ -4,6 +4,11 @@
   本例程使用厂家《电机 RS485 通讯协议》中的私有帧格式，不是 Modbus-RTU。
 
   推荐硬件连接：课程配套 RS485/供电转接板。
+  使用转接板时只需要接 ESP32-S3 UART：
+  ESP32-S3 GPIO17 (TX) -> 转接板 TX3/TXD
+  ESP32-S3 GPIO18 (RX) -> 转接板 RX3/RXD
+  ESP32-S3 GND         -> 转接板 GND
+
   如果使用散装 RS485 模块（如 SP3485 / MAX3485 / 3.3V MAX485 模块），按下表接线：
   ESP32-S3 GPIO17 (TX) -> RS485 模块 DI
   ESP32-S3 GPIO18 (RX) -> RS485 模块 RO
@@ -12,8 +17,8 @@
   RS485 A              -> 电机 A/H（RS485-A）
   RS485 B              -> 电机 B/L（RS485-B）
 
-  GPIO17、GPIO18、GPIO16 均已在本教程使用的 ESP32 开发板排针上引出，
-  可以按上表直接接到转接板或 RS485 模块。
+  课程配套转接板已在板上处理 RS485 收发方向，不需要 GPIO16。
+  只有使用散装 RS485 模块时，才需要把 RS485_DE_RE 改成 16。
 
   电机需要 12V~24V 独立电源供电，首次测试建议使用 24V 2A 以上。
   使用转接板时，电机电源正极接 24VIN/VIN，电源负极接 GND，电机 A/H、B/L 接转接板 A、B。
@@ -31,9 +36,9 @@
 
 #include <HardwareSerial.h>
 
-#define RS485_TX      17   // 排针已引出，接 RS485 转接板/模块 DI
-#define RS485_RX      18   // 排针已引出，接 RS485 转接板/模块 RO
-#define RS485_DE_RE   16   // 排针已引出，接 RS485 转接板/模块 DE/RE 或方向控制端
+#define RS485_TX      17   // 接转接板 TX3/TXD；使用通用 RS485 模块时接 DI
+#define RS485_RX      18   // 接转接板 RX3/RXD；使用通用 RS485 模块时接 RO
+#define RS485_DE_RE   -1   // 转接板自动收发方向；通用 RS485 模块需要时改为 16
 
 #define MOTOR_ID      0x01
 #define RS485_BAUD    115200
@@ -57,14 +62,18 @@ uint8_t byteSum(const uint8_t *data, uint8_t len) {
 }
 
 void rs485TxMode() {
-  digitalWrite(RS485_DE_RE, HIGH);
-  delayMicroseconds(50);
+  if (RS485_DE_RE >= 0) {
+    digitalWrite(RS485_DE_RE, HIGH);
+    delayMicroseconds(50);
+  }
 }
 
 void rs485RxMode() {
   RS485.flush();
-  delayMicroseconds(50);
-  digitalWrite(RS485_DE_RE, LOW);
+  if (RS485_DE_RE >= 0) {
+    delayMicroseconds(50);
+    digitalWrite(RS485_DE_RE, LOW);
+  }
 }
 
 void clearRxBuffer() {
@@ -248,14 +257,20 @@ void setup() {
   Serial.begin(115200);
   delay(1000);
 
-  pinMode(RS485_DE_RE, OUTPUT);
-  digitalWrite(RS485_DE_RE, LOW);
+  if (RS485_DE_RE >= 0) {
+    pinMode(RS485_DE_RE, OUTPUT);
+    digitalWrite(RS485_DE_RE, LOW);
+  }
   RS485.begin(RS485_BAUD, SERIAL_8N1, RS485_RX, RS485_TX);
 
   Serial.println();
   Serial.println("MG4010-i10 RS485 基础控制");
-  Serial.printf("RS485: GPIO%d(TX) GPIO%d(RX) GPIO%d(DE/RE) @ %d\n",
-                RS485_TX, RS485_RX, RS485_DE_RE, RS485_BAUD);
+  Serial.printf("RS485: GPIO%d(TX) GPIO%d(RX) @ %d\n", RS485_TX, RS485_RX, RS485_BAUD);
+  if (RS485_DE_RE < 0) {
+    Serial.println("RS485 direction: auto on adapter board");
+  } else {
+    Serial.printf("RS485 direction: GPIO%d controls DE/RE\n", RS485_DE_RE);
+  }
   printHelp();
 }
 

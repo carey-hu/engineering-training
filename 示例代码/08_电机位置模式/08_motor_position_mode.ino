@@ -9,8 +9,8 @@
   速度 maxSpeed：0.01 dps/LSB，uint32_t，电机侧速度
 
   接线与 06 基础控制例程相同，推荐使用课程配套 RS485/供电转接板：
-  GPIO17 -> RS485 DI，GPIO18 -> RS485 RO，GPIO16 -> RS485 DE 和 RE。
-  这三个 GPIO 均已在本教程使用的 ESP32 开发板排针上引出。
+  GPIO17 -> 转接板 TX3/TXD，GPIO18 -> 转接板 RX3/RXD，ESP32 GND -> 转接板 GND。
+  转接板已处理 RS485 收发方向，不需要 GPIO16。
 
   串口命令：
   数字       设置输出轴目标角度，如 90
@@ -25,9 +25,9 @@
 
 #include <HardwareSerial.h>
 
-#define RS485_TX      17   // 排针已引出，接 RS485 转接板/模块 DI
-#define RS485_RX      18   // 排针已引出，接 RS485 转接板/模块 RO
-#define RS485_DE_RE   16   // 排针已引出，接 RS485 转接板/模块 DE/RE 或方向控制端
+#define RS485_TX      17   // 接转接板 TX3/TXD；使用通用 RS485 模块时接 DI
+#define RS485_RX      18   // 接转接板 RX3/RXD；使用通用 RS485 模块时接 RO
+#define RS485_DE_RE   -1   // 转接板自动收发方向；通用 RS485 模块需要时改为 16
 
 #define MOTOR_ID      0x01
 #define RS485_BAUD    115200
@@ -51,14 +51,18 @@ uint8_t byteSum(const uint8_t *data, uint8_t len) {
 }
 
 void rs485Tx() {
-  digitalWrite(RS485_DE_RE, HIGH);
-  delayMicroseconds(50);
+  if (RS485_DE_RE >= 0) {
+    digitalWrite(RS485_DE_RE, HIGH);
+    delayMicroseconds(50);
+  }
 }
 
 void rs485Rx() {
   RS485.flush();
-  delayMicroseconds(50);
-  digitalWrite(RS485_DE_RE, LOW);
+  if (RS485_DE_RE >= 0) {
+    delayMicroseconds(50);
+    digitalWrite(RS485_DE_RE, LOW);
+  }
 }
 
 void clearRx() {
@@ -223,8 +227,10 @@ void setup() {
   Serial.begin(115200);
   delay(1000);
 
-  pinMode(RS485_DE_RE, OUTPUT);
-  digitalWrite(RS485_DE_RE, LOW);
+  if (RS485_DE_RE >= 0) {
+    pinMode(RS485_DE_RE, OUTPUT);
+    digitalWrite(RS485_DE_RE, LOW);
+  }
   RS485.begin(RS485_BAUD, SERIAL_8N1, RS485_RX, RS485_TX);
 
   Serial.println();

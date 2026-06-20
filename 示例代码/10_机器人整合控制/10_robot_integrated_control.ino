@@ -17,9 +17,9 @@
 
   默认接线：
   RS485：推荐使用课程配套 RS485/供电转接板。
-  GPIO17 -> DI，GPIO18 -> RO，GPIO16 -> DE/RE 或方向控制端。
+  GPIO17 -> 转接板 TX3/TXD，GPIO18 -> 转接板 RX3/RXD，ESP32 GND -> 转接板 GND。
+  转接板已处理 RS485 收发方向，不需要 GPIO16。
   舵机：GPIO10、GPIO11、GPIO12、GPIO13 分别接四路舵机信号线。
-  以上 GPIO 均已在本教程使用的 ESP32 开发板排针上引出。
 */
 
 #include <Arduino.h>
@@ -27,9 +27,9 @@
 
 // ==================== 1. 引脚和硬件参数 ====================
 
-#define RS485_TX      17   // 排针已引出，接 RS485 转接板/模块 DI
-#define RS485_RX      18   // 排针已引出，接 RS485 转接板/模块 RO
-#define RS485_DE_RE   16   // 排针已引出，接 RS485 转接板/模块 DE/RE 或方向控制端
+#define RS485_TX      17   // 接转接板 TX3/TXD；使用通用 RS485 模块时接 DI
+#define RS485_RX      18   // 接转接板 RX3/RXD；使用通用 RS485 模块时接 RO
+#define RS485_DE_RE   -1   // 转接板自动收发方向；通用 RS485 模块需要时改为 16
 #define RS485_BAUD    115200
 
 const uint8_t LEFT_MOTOR_ID = 1;
@@ -80,14 +80,18 @@ void clearRs485Rx() {
 }
 
 void rs485TransmitMode() {
-  digitalWrite(RS485_DE_RE, HIGH);
-  delayMicroseconds(20);
+  if (RS485_DE_RE >= 0) {
+    digitalWrite(RS485_DE_RE, HIGH);
+    delayMicroseconds(20);
+  }
 }
 
 void rs485ReceiveMode() {
   RS485.flush();
-  delayMicroseconds(20);
-  digitalWrite(RS485_DE_RE, LOW);
+  if (RS485_DE_RE >= 0) {
+    delayMicroseconds(20);
+    digitalWrite(RS485_DE_RE, LOW);
+  }
 }
 
 bool readMotorResponse(uint8_t expectedId, uint8_t expectedCmd, uint16_t timeoutMs = 30) {
@@ -359,8 +363,10 @@ void setup() {
   Serial.setTimeout(20);
   delay(500);
 
-  pinMode(RS485_DE_RE, OUTPUT);
-  digitalWrite(RS485_DE_RE, LOW);
+  if (RS485_DE_RE >= 0) {
+    pinMode(RS485_DE_RE, OUTPUT);
+    digitalWrite(RS485_DE_RE, LOW);
+  }
   RS485.begin(RS485_BAUD, SERIAL_8N1, RS485_RX, RS485_TX);
 
   for (uint8_t i = 0; i < SERVO_COUNT; i++) {
@@ -369,8 +375,12 @@ void setup() {
   }
 
   Serial.println("ESP32-S3 机器人整合控制已启动");
-  Serial.printf("RS485: TX GPIO%d, RX GPIO%d, DE/RE GPIO%d, baud %d\n",
-                RS485_TX, RS485_RX, RS485_DE_RE, RS485_BAUD);
+  Serial.printf("RS485: TX GPIO%d, RX GPIO%d, baud %d\n", RS485_TX, RS485_RX, RS485_BAUD);
+  if (RS485_DE_RE < 0) {
+    Serial.println("RS485 direction: auto on adapter board");
+  } else {
+    Serial.printf("RS485 direction: GPIO%d controls DE/RE\n", RS485_DE_RE);
+  }
   Serial.printf("电机 ID: 左 %d, 右 %d\n", LEFT_MOTOR_ID, RIGHT_MOTOR_ID);
   Serial.print("舵机 GPIO:");
   for (uint8_t i = 0; i < SERVO_COUNT; i++) {

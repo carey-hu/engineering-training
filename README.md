@@ -18,9 +18,9 @@ https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
 | 功能 | 默认 GPIO | 接线用途 |
 |------|-----------|----------|
 | 板载普通 LED | GPIO2 | 开发板自带普通单色 LED，不需要外接元件 |
-| RS485 TX | GPIO17 | 接 RS485 转接板/模块 DI |
-| RS485 RX | GPIO18 | 接 RS485 转接板/模块 RO |
-| RS485 DE/RE | GPIO16 | 接 RS485 转接板/模块 DE 和 RE，两个脚并在一起 |
+| RS485 TX | GPIO17 | 接课程转接板 TX3/TXD；使用通用 RS485 模块时接 DI |
+| RS485 RX | GPIO18 | 接课程转接板 RX3/RXD；使用通用 RS485 模块时接 RO |
+| RS485 DE/RE（仅通用模块） | GPIO16 | 课程转接板不接；散装 RS485 模块才接 DE 和 RE |
 | 舵机 1-4 | GPIO10、GPIO11、GPIO12、GPIO13 | 只接舵机信号线，舵机电源使用独立 5V |
 
 ---
@@ -343,7 +343,7 @@ Partition Scheme: Default
 
 ESP32-S3 具备足够资源完成本教程的最终工程：
 
-- 两个 MG4010-i10 RS485 电机共用一条 UART + RS485 总线，通过不同电机 ID 区分，命令按顺序快速发送。
+- 两个 MG4010-i10 RS485 电机共用一条 UART + RS485 总线，通过不同电机 ID 区分，命令按顺序快速发送。课程配套转接板已经处理 RS485 收发方向，ESP32 侧只需要 TX/RX；使用散装 RS485 模块时才需要额外 DE/RE 方向控制脚。
 - 四个 PWM 舵机使用 ESP32-S3 的 LEDC PWM 输出，每个舵机占用一个 GPIO，不占用 UART。
 - Wi-Fi 网页控制、串口调试、两电机控制和四舵机 PWM 可以在同一工程中共存，但主循环必须采用非阻塞写法，避免长时间 `delay()`。
 - 电机和舵机必须分别使用外部电源，所有电源负极必须与 ESP32 GND 共地。
