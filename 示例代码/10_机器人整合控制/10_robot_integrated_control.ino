@@ -17,7 +17,7 @@
 
   默认接线：
   RS485：推荐使用课程配套 RS485/供电转接板。
-  GPIO17 -> 转接板 TX3/TXD，GPIO18 -> 转接板 RX3/RXD，ESP32 GND -> 转接板 GND。
+  GPIO17(TX) -> 转接板 TTL-485 调试口 T，GPIO18(RX) -> R，ESP32 5V/GND -> USB调试 5V/G。
   转接板已处理 RS485 收发方向，不需要 GPIO16。
   舵机：GPIO10、GPIO11、GPIO12、GPIO13 分别接四路舵机信号线。
 */
@@ -27,8 +27,8 @@
 
 // ==================== 1. 引脚和硬件参数 ====================
 
-#define RS485_TX      17   // 接转接板 TX3/TXD；使用通用 RS485 模块时接 DI
-#define RS485_RX      18   // 接转接板 RX3/RXD；使用通用 RS485 模块时接 RO
+#define RS485_TX      17   // 接转接板 TTL-485 调试口 T；使用通用 RS485 模块时接 DI
+#define RS485_RX      18   // 接转接板 TTL-485 调试口 R；使用通用 RS485 模块时接 RO
 #define RS485_DE_RE   -1   // 转接板自动收发方向；通用 RS485 模块需要时改为 16
 #define RS485_BAUD    115200
 

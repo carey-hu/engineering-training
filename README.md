@@ -18,8 +18,8 @@ https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
 | 功能 | 默认 GPIO | 接线用途 |
 |------|-----------|----------|
 | 板载普通 LED | GPIO2 | 开发板自带普通单色 LED，不需要外接元件 |
-| RS485 TX | GPIO17 | 接课程转接板 TX3/TXD；使用通用 RS485 模块时接 DI |
-| RS485 RX | GPIO18 | 接课程转接板 RX3/RXD；使用通用 RS485 模块时接 RO |
+| RS485 TX | GPIO17 | 接课程转接板 TTL-485 调试口 T；使用通用 RS485 模块时接 DI |
+| RS485 RX | GPIO18 | 接课程转接板 TTL-485 调试口 R；使用通用 RS485 模块时接 RO |
 | RS485 DE/RE（仅通用模块） | GPIO16 | 课程转接板不接；散装 RS485 模块才接 DE 和 RE |
 | 舵机 1-4 | GPIO10、GPIO11、GPIO12、GPIO13 | 只接舵机信号线，舵机电源使用独立 5V |
 
@@ -52,6 +52,7 @@ esp32s3-arduino-zero-to-one-cn/
 └── 硬件资料/              # 硬件资料
     ├── 技术文档/          # 原理图、电机手册、协议文档
     ├── 驱动程序/          # CH340 驱动程序
+    ├── 接线图/            # 转接板接线示意图
     └── 3D模型/            # 3D 模型（STEP 格式）
         ├── 电机/          # MG4010 电机模型
         └── 舵机/          # MG90S 舵机和舵盘模型

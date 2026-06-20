@@ -11,10 +11,10 @@
 
 | ESP32-S3 | 转接板 |
 |----------|--------|
-| GPIO17 (TX) | TX3 / TXD |
-| GPIO18 (RX) | RX3 / RXD |
-| GND | GND |
-| 5V 或课程配套 5V 线 | 5VIN |
+| 5V | USB调试 5V |
+| GND | USB调试 G |
+| GPIO17 (TX) | TTL-485 调试 T |
+| GPIO18 (RX) | TTL-485 调试 R |
 
 课程配套转接板已在板上处理 RS485 收发方向，ESP32 不需要接 GPIO16。如果改用通用 RS485 模块，GPIO17 接 DI，GPIO18 接 RO，GPIO16 接 DE 和 RE。
 
@@ -22,8 +22,10 @@
 
 | RS485 转接板/模块 | MG4010-i10 |
 |------------|------------|
-| A | A/H |
-| B | B/L |
+| 电机 6pin 第 1 pin：B | B/L |
+| 电机 6pin 第 2 pin：A | A/H |
+| 电机 6pin 第 3、4 pin：GND | V- |
+| 电机 6pin 第 5、6 pin：24V | V+ |
 
 舵机信号线：
 

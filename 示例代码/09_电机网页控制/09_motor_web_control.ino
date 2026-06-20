@@ -12,7 +12,7 @@
   网页中输入的速度和角度均指输出轴。代码按 i10 减速比换算为电机侧协议值。
 
   RS485 接线，推荐使用课程配套 RS485/供电转接板：
-  GPIO17 -> 转接板 TX3/TXD，GPIO18 -> 转接板 RX3/RXD，ESP32 GND -> 转接板 GND。
+  GPIO17(TX) -> 转接板 TTL-485 调试口 T，GPIO18(RX) -> R，ESP32 5V/GND -> USB调试 5V/G。
   转接板已处理 RS485 收发方向，不需要 GPIO16。
 */
 
@@ -24,8 +24,8 @@ const char *ssid = "ESP32S3_MOTOR";
 const char *password = "12345678";
 WebServer server(80);
 
-#define RS485_TX      17   // 接转接板 TX3/TXD；使用通用 RS485 模块时接 DI
-#define RS485_RX      18   // 接转接板 RX3/RXD；使用通用 RS485 模块时接 RO
+#define RS485_TX      17   // 接转接板 TTL-485 调试口 T；使用通用 RS485 模块时接 DI
+#define RS485_RX      18   // 接转接板 TTL-485 调试口 R；使用通用 RS485 模块时接 RO
 #define RS485_DE_RE   -1   // 转接板自动收发方向；通用 RS485 模块需要时改为 16
 
 #define MOTOR_ID      0x01

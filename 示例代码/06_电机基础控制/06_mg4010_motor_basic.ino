@@ -4,10 +4,11 @@
   本例程使用厂家《电机 RS485 通讯协议》中的私有帧格式，不是 Modbus-RTU。
 
   推荐硬件连接：课程配套 RS485/供电转接板。
-  使用转接板时只需要接 ESP32-S3 UART：
-  ESP32-S3 GPIO17 (TX) -> 转接板 TX3/TXD
-  ESP32-S3 GPIO18 (RX) -> 转接板 RX3/RXD
-  ESP32-S3 GND         -> 转接板 GND
+  使用转接板时接 ESP32-S3 的 5V/GND 和 UART：
+  ESP32-S3 5V          -> 转接板 USB调试 5V
+  ESP32-S3 GND         -> 转接板 USB调试 G
+  ESP32-S3 GPIO17 (TX) -> 转接板 TTL-485 调试 T
+  ESP32-S3 GPIO18 (RX) -> 转接板 TTL-485 调试 R
 
   如果使用散装 RS485 模块（如 SP3485 / MAX3485 / 3.3V MAX485 模块），按下表接线：
   ESP32-S3 GPIO17 (TX) -> RS485 模块 DI
@@ -36,8 +37,8 @@
 
 #include <HardwareSerial.h>
 
-#define RS485_TX      17   // 接转接板 TX3/TXD；使用通用 RS485 模块时接 DI
-#define RS485_RX      18   // 接转接板 RX3/RXD；使用通用 RS485 模块时接 RO
+#define RS485_TX      17   // 接转接板 TTL-485 调试口 T；使用通用 RS485 模块时接 DI
+#define RS485_RX      18   // 接转接板 TTL-485 调试口 R；使用通用 RS485 模块时接 RO
 #define RS485_DE_RE   -1   // 转接板自动收发方向；通用 RS485 模块需要时改为 16
 
 #define MOTOR_ID      0x01

@@ -20,8 +20,8 @@
 
 | 功能 | 默认 GPIO | 说明 |
 |------|-----------|------|
-| RS485 TX | GPIO17 | 接课程转接板 TX3/TXD；使用通用 RS485 模块时接 DI |
-| RS485 RX | GPIO18 | 接课程转接板 RX3/RXD；使用通用 RS485 模块时接 RO |
+| RS485 TX | GPIO17 | 接课程转接板 TTL-485 调试口 T；使用通用 RS485 模块时接 DI |
+| RS485 RX | GPIO18 | 接课程转接板 TTL-485 调试口 R；使用通用 RS485 模块时接 RO |
 | RS485 DE/RE（仅通用模块） | GPIO16 | 课程转接板不接；散装 RS485 模块才用它控制 DE/RE |
 | 舵机 1 | GPIO10 | LEDC PWM 输出 |
 | 舵机 2 | GPIO11 | LEDC PWM 输出 |

@@ -145,12 +145,13 @@ ESP32 GND -> 外部 5V-（共地）
 使用转接板时，先按板子丝印接线，重点核对：
 
 ```text
-ESP32 GPIO17(TX) -> 转接板 TX3/TXD
-ESP32 GPIO18(RX) -> 转接板 RX3/RXD
-ESP32 GND        -> 转接板 GND
-电机电源正极 -> 转接板 24VIN/VIN
-电机电源负极 -> 转接板 GND
-转接板 A/B -> 电机 A/H、B/L
+ESP32 5V         -> 转接板 USB调试 5V
+ESP32 GND        -> 转接板 USB调试 G
+ESP32 GPIO17(TX) -> 转接板 TTL-485 调试 T
+ESP32 GPIO18(RX) -> 转接板 TTL-485 调试 R
+24V 电源正极     -> 转接板输入端子上孔
+24V 电源负极     -> 转接板输入端子下孔
+电机 6pin        -> 从左到右 B、A、GND、GND、24V、24V
 ```
 
 课程配套转接板已经在板上处理 RS485 收发方向，ESP32 不需要再接 GPIO16。
