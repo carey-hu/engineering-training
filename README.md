@@ -13,13 +13,40 @@
 | Windows 环境搭建 | [01 Windows 安装教程](教程文档/01_install_windows.md) |
 | macOS 环境搭建 | [02 macOS 安装教程](教程文档/02_install_macos.md) |
 | ESP32-S3 板卡参数 | [03 板卡设置](教程文档/03_board_settings_esp32s3.md) |
-| 常见问题排查 | [04 常见错误](教程文档/04_common_errors.md) |
-| 学生自查清单 | [05 学生检查表](教程文档/05_student_checklist.md) |
 | 硬件资料说明 | [06 硬件资料说明](教程文档/06_hardware_info.md) |
 | 舵机使用 | [07 舵机指南](教程文档/07_servo_guide.md) |
 | 电机使用 | [08 电机指南](教程文档/08_motor_guide.md) |
 | 机器人整合 | [09 机器人整合](教程文档/09_robot_integration.md) |
 | 教师审阅维护 | [10 审阅报告](教程文档/10_review_report.md) |
+
+## 开发板说明
+
+本教程使用 ESP32-S3 开发板作为主控制器，按 ESP32-S3-DevKitC-1 类开发板的使用方式组织。实际配发板可能在 USB 接口、丝印或外设数量上略有差异，接线时以板上丝印、[ESP32-S3开发板引脚图](硬件资料/接线图/ESP32-S3开发板引脚图.png) 和 [ESP32-S3原理图](硬件资料/技术文档/ESP32-S3原理图.pdf) 为准。
+
+[![ESP32-S3开发板引脚图](硬件资料/接线图/ESP32-S3开发板引脚图.png)](硬件资料/接线图/ESP32-S3开发板引脚图.png)
+
+参考 Espressif 官方 [ESP32-S3-DevKitC-1 v1.1 用户指南](https://docs.espressif.com/projects/esp-dev-kits/zh_CN/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html)，这类开发板的核心特点如下：
+
+| 模块 | 说明 |
+|------|------|
+| 主控模组 | 搭载 ESP32-S3-WROOM-1、ESP32-S3-WROOM-1U 或 ESP32-S3-WROOM-2 系列 Wi-Fi + Bluetooth LE 模组 |
+| 主芯片能力 | ESP32-S3 面向 AIoT 场景，具备丰富外设接口、神经网络运算能力和信号处理能力 |
+| 排针 | 大部分可用 GPIO 引出到两侧排针，适合杜邦线、面包板和课程外设接线 |
+| 供电 | 常用 USB 供电；也可通过 5V/GND 或 3V3/GND 排针供电，初学阶段优先使用 USB |
+| 电源转换 | 板上 5V 转 3.3V LDO 为 ESP32-S3 模组供电 |
+| 下载与调试 | USB-to-UART 接口可供电、烧录固件和串口通信；ESP32-S3 原生 USB 也可用于 USB 通信或 JTAG 调试 |
+| 按键与指示灯 | 常见配置包括 BOOT、RESET、3.3V 电源指示灯，部分板卡带 GPIO38 驱动的 RGB LED |
+
+主芯片和开发板资料：
+
+| 资料 | 用途 |
+|------|------|
+| [ESP32-S3技术规格书.pdf](硬件资料/技术文档/ESP32-S3技术规格书.pdf) | 查询芯片外设、IO 复用、电气参数、工作条件 |
+| [ESP32-S3原理图.pdf](硬件资料/技术文档/ESP32-S3原理图.pdf) | 核对开发板 USB、供电、按键、LED、排针连接 |
+| [ESP32-S3开发板引脚图.png](硬件资料/接线图/ESP32-S3开发板引脚图.png) | 上机接线前快速核对 GPIO、5V、3.3V、GND 位置 |
+| [Espressif 官方用户指南](https://docs.espressif.com/projects/esp-dev-kits/zh_CN/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html) | 查看 ESP32-S3-DevKitC-1 的组件介绍、供电方式、排针说明和相关官方文档 |
+
+注意：官方指南提到，部分 ESP32-S3-WROOM 模组会占用 GPIO35、GPIO36、GPIO37 作为内部 SPI flash/PSRAM 通信，外部不可使用。本教程默认使用的 GPIO2、GPIO10、GPIO11、GPIO12、GPIO13、GPIO16、GPIO17、GPIO18 已按课程资料核对。
 
 ## 接线图
 
@@ -132,17 +159,6 @@ Partition Scheme: Default
 ```
 
 上传失败时，把 `Upload Speed` 改成 `115200`，或按住 `BOOT` 后再上传。
-
-## 常见问题入口
-
-| 问题 | 看这里 |
-|------|--------|
-| 找不到 COM 口 | [04 常见错误](教程文档/04_common_errors.md) |
-| 板卡包装不上 | [00 下载链接](教程文档/00_downloads_cn.md) |
-| 上传卡在 `Connecting...` | [01 Windows 安装教程](教程文档/01_install_windows.md) |
-| 舵机抖动或 ESP32 复位 | [07 舵机指南](教程文档/07_servo_guide.md) |
-| 电机无回复 | [08 电机指南](教程文档/08_motor_guide.md) |
-| 最终项目怎么组织代码 | [09 机器人整合](教程文档/09_robot_integration.md) |
 
 ## 目录结构
 
