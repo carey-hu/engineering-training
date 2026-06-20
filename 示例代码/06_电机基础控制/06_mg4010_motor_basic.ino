@@ -3,7 +3,8 @@
 
   本例程使用厂家《电机 RS485 通讯协议》中的私有帧格式，不是 Modbus-RTU。
 
-  硬件连接（外接 RS485 模块，如 SP3485 / MAX3485 / 3.3V MAX485 模块）：
+  推荐硬件连接：课程配套 RS485/供电转接板。
+  如果使用散装 RS485 模块（如 SP3485 / MAX3485 / 3.3V MAX485 模块），按下表接线：
   ESP32-S3 GPIO17 (TX) -> RS485 模块 DI
   ESP32-S3 GPIO18 (RX) -> RS485 模块 RO
   ESP32-S3 GPIO16      -> RS485 模块 DE 和 RE（两个引脚连在一起）
@@ -12,9 +13,10 @@
   RS485 B              -> 电机 B/L（RS485-B）
 
   GPIO17、GPIO18、GPIO16 均已在本教程使用的 ESP32 开发板排针上引出，
-  可以按上表直接接到 RS485 模块。
+  可以按上表直接接到转接板或 RS485 模块。
 
   电机需要 12V~24V 独立电源供电，首次测试建议使用 24V 2A 以上。
+  使用转接板时，电机电源正极接 24VIN/VIN，电源负极接 GND，电机 A/H、B/L 接转接板 A、B。
 
   串口命令：
   r  电机运行（Motor ON，命令 0x88）
@@ -29,9 +31,9 @@
 
 #include <HardwareSerial.h>
 
-#define RS485_TX      17   // 排针已引出，接 RS485 模块 DI
-#define RS485_RX      18   // 排针已引出，接 RS485 模块 RO
-#define RS485_DE_RE   16   // 排针已引出，接 RS485 模块 DE 和 RE
+#define RS485_TX      17   // 排针已引出，接 RS485 转接板/模块 DI
+#define RS485_RX      18   // 排针已引出，接 RS485 转接板/模块 RO
+#define RS485_DE_RE   16   // 排针已引出，接 RS485 转接板/模块 DE/RE 或方向控制端
 
 #define MOTOR_ID      0x01
 #define RS485_BAUD    115200

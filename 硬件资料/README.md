@@ -48,6 +48,13 @@
   - 反馈数据格式
   - 注意：该协议不是 Modbus-RTU 寄存器协议
 
+### RS485/供电转接板
+
+- [转接板原理图.pdf](../转接板原理图.pdf)
+  课程配套的 RS485 通信与电机供电转接板原理图。教程中的 MG4010-i10 电机实验建议优先使用这块板，减少散装 RS485 模块、独立电源和电机端子之间的接线错误。
+
+  **什么时候需要看**：电机无回复、确认 24VIN/GND/A/B、核对 DI/RO/DE/RE 与 ESP32 GPIO17/GPIO18/GPIO16 的连接关系。
+
 ---
 
 ## 驱动程序
@@ -119,3 +126,4 @@ WCH CH340/CH341 USB 转串口芯片的 Windows 驱动。
 - **驱动安装详细教程**：见 [教程文档/01_install_windows.md](../教程文档/01_install_windows.md)
 - **舵机使用指南**：见 [教程文档/07_servo_guide.md](../教程文档/07_servo_guide.md)
 - **电机使用指南**：见 [教程文档/08_motor_guide.md](../教程文档/08_motor_guide.md)
+- **转接板说明位置**：见 [教程文档/06_hardware_info.md](../教程文档/06_hardware_info.md) 和 [教程文档/08_motor_guide.md](../教程文档/08_motor_guide.md)

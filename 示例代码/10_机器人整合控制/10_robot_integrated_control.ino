@@ -12,11 +12,12 @@
   重要要求：
   1. 两个 MG4010-i10 电机必须设置为不同 ID。
   2. 电机使用独立 12V~24V 电源，舵机使用独立 5V 电源。
-  3. ESP32 GND、RS485 GND、电机电源负极、舵机电源负极必须共地。
+  3. ESP32 GND、RS485/供电转接板或 RS485 模块 GND、电机电源负极、舵机电源负极必须共地。
   4. 不要在主循环中使用长时间 delay()。
 
   默认接线：
-  RS485：GPIO17 -> DI，GPIO18 -> RO，GPIO16 -> DE 和 RE。
+  RS485：推荐使用课程配套 RS485/供电转接板。
+  GPIO17 -> DI，GPIO18 -> RO，GPIO16 -> DE/RE 或方向控制端。
   舵机：GPIO10、GPIO11、GPIO12、GPIO13 分别接四路舵机信号线。
   以上 GPIO 均已在本教程使用的 ESP32 开发板排针上引出。
 */
@@ -26,9 +27,9 @@
 
 // ==================== 1. 引脚和硬件参数 ====================
 
-#define RS485_TX      17   // 排针已引出，接 RS485 模块 DI
-#define RS485_RX      18   // 排针已引出，接 RS485 模块 RO
-#define RS485_DE_RE   16   // 排针已引出，接 RS485 模块 DE 和 RE
+#define RS485_TX      17   // 排针已引出，接 RS485 转接板/模块 DI
+#define RS485_RX      18   // 排针已引出，接 RS485 转接板/模块 RO
+#define RS485_DE_RE   16   // 排针已引出，接 RS485 转接板/模块 DE/RE 或方向控制端
 #define RS485_BAUD    115200
 
 const uint8_t LEFT_MOTOR_ID = 1;
@@ -204,7 +205,10 @@ bool setMotorOutputSpeed(uint8_t id, float outputDps) {
   data[2] = (uint8_t)((rawSpeed >> 16) & 0xFF);
   data[3] = (uint8_t)((rawSpeed >> 24) & 0xFF);
 
-  return sendMotorFrame(id, CMD_SPEED_CLOSED_LOOP, data, 4);
+  bool runOk = motorRun(id);
+  delay(2);
+  bool speedOk = sendMotorFrame(id, CMD_SPEED_CLOSED_LOOP, data, 4);
+  return runOk && speedOk;
 }
 
 // ==================== 5. 舵机控制 ====================
@@ -256,7 +260,7 @@ void updateServos() {
 void printHelp() {
   Serial.println();
   Serial.println("===== 机器人整合控制 =====");
-  Serial.println("run                 两个电机进入运行状态");
+  Serial.println("run                 两个电机进入运行状态（可选，速度命令会自动运行）");
   Serial.println("stop                两个电机停止");
   Serial.println("v 30 30             左右电机输出轴速度，单位 dps");
   Serial.println("s 1 90              舵机 1 转到 90 度");
