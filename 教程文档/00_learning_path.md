@@ -10,8 +10,7 @@
 |------|------|
 | ESP32-S3 开发板 | 主控制器 |
 | USB 数据线 | 上传程序和串口调试，不能只用充电线 |
-| 板载 RGB | 开发板自带，用来做第一次无接线环境验证 |
-| 外接 LED + 220Ω 电阻 | 扩展练习普通 GPIO 输出，可选 |
+| 板载普通 LED | 开发板自带，用来做第一次无接线 GPIO 输出实验 |
 | 普通 PWM 舵机 | 学习 50Hz PWM 控制 |
 | 独立 5V 舵机电源 | 给舵机供电 |
 | MG4010-i10 RS485 电机 | 学习 RS485 电机控制 |
@@ -55,25 +54,25 @@
 - 板卡包装不上：确认用的是 `package_esp32_index_cn.json`。
 - 上传卡住：降低 Upload Speed 到 `115200`，按住 BOOT 再上传。
 
-## 2. 第一个硬件闭环：板载 RGB
+## 2. 第一个硬件闭环：板载普通 LED
 
 运行：
 
 ```text
-示例代码/01_LED闪烁/01_blink_onboard_rgb.ino
+示例代码/01_LED闪烁/01_blink_onboard_led.ino
 ```
 
-这一步不需要接线。板载 RGB 是 WS2812，控制脚为 GPIO48，示例使用 `neopixelWrite()` 控制。
+这一步不需要接线。板载普通 LED 默认接在 GPIO2，示例使用 `pinMode()` 和 `digitalWrite()` 控制。
 
 完成标志：
 
-- 板载 RGB 每秒闪烁。
+- 板载普通 LED 每秒闪烁。
 - 你能说清楚“上传成功”和“程序正在运行”的区别。
 
 扩展练习：
 
-- 如果要学习普通 GPIO 输出，再接外部 LED：`GPIO2 -> 220Ω 电阻 -> LED 长脚，LED 短脚 -> GND`。
-- 板载 RGB 不能用普通 `digitalWrite()` 直接控制；外接 LED 才适合练习 `pinMode()` 和 `digitalWrite()`。
+- 观察代码中 `LED_PIN`、`LED_ON`、`LED_OFF` 的作用。
+- 如果实际板子 LED 亮灭相反，交换 `LED_ON` 和 `LED_OFF` 的值。
 
 ## 3. 学会串口调试
 

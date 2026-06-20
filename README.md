@@ -9,16 +9,15 @@
 **开发板资料**：本教程使用的 ESP32 开发板资料页：
 https://www.xinlucity.com/?s=resourcedetail/index/id/61.html
 
-**第一次学习先看**：[`教程文档/00_learning_path.md`](教程文档/00_learning_path.md)。这份路线按“环境 → 板载 RGB → 串口 → 舵机 → 电机 → 整合”的顺序安排，每一步都有完成标志和失败排查入口。
+**第一次学习先看**：[`教程文档/00_learning_path.md`](教程文档/00_learning_path.md)。这份路线按“环境 → 板载普通 LED → 串口 → 舵机 → 电机 → 整合”的顺序安排，每一步都有完成标志和失败排查入口。
 
 **教师审阅与维护参考**：[`教程文档/10_review_report.md`](教程文档/10_review_report.md)。里面记录了教程规范性评估、各例程正确性检查和后续改进建议。
 
-**默认接线引脚**：已根据 ESP32-S3 开发板原理图核对。板载 RGB 不需要接线；下面用于外设的 GPIO 都从排针引出，适合本教程直接插线使用。
+**默认接线引脚**：已根据 ESP32-S3 开发板原理图核对。板载普通 LED 不需要接线；下面用于外设的 GPIO 都从排针引出，适合本教程直接插线使用。
 
 | 功能 | 默认 GPIO | 接线用途 |
 |------|-----------|----------|
-| 板载 RGB | GPIO48 | 开发板自带 WS2812 RGB 灯，不需要外接元件 |
-| 外接 LED（扩展） | GPIO2 | GPIO2 → 220Ω 电阻 → LED 长脚，LED 短脚 → GND |
+| 板载普通 LED | GPIO2 | 开发板自带普通单色 LED，不需要外接元件 |
 | RS485 TX | GPIO17 | 接 RS485 转接板/模块 DI |
 | RS485 RX | GPIO18 | 接 RS485 转接板/模块 RO |
 | RS485 DE/RE | GPIO16 | 接 RS485 转接板/模块 DE 和 RE，两个脚并在一起 |
@@ -190,19 +189,19 @@ Partition Scheme: Default
 
 ---
 
-## 第一个程序：让板载 RGB 闪起来
+## 第一个程序：让板载普通 LED 闪起来
 
-第一步建议先用板载 RGB，不需要面包板、电阻和 LED。这样学生能先确认“IDE、板卡、端口、上传”全部正常，再学习外接 GPIO。
+第一步建议先用板载普通 LED，不需要面包板、电阻和外接 LED。这样学生能先确认“IDE、板卡、端口、上传”全部正常，同时直接学习普通 GPIO 输出。
 
-本教程使用的 ESP32-S3 开发板板载 RGB 是 WS2812，控制脚为 GPIO48。它不能用普通 `digitalWrite()` 直接点亮，示例使用 Arduino-ESP32 提供的 `neopixelWrite()`。
+本教程默认板载普通 LED 接在 GPIO2。示例使用 Arduino 最基础的 `pinMode()` 和 `digitalWrite()`，后续网页控制 LED 也沿用同一个引脚。
 
 打开示例代码：
 
 ```
-示例代码/01_LED闪烁/01_blink_onboard_rgb.ino
+示例代码/01_LED闪烁/01_blink_onboard_led.ino
 ```
 
-点上传。如果板载 RGB 每秒闪一次，说明环境搭好了。想练习普通 GPIO 输出时，再把外接 LED 接到 GPIO2：`GPIO2 → 220Ω 电阻 → LED 长脚，LED 短脚 → GND`。
+点上传。如果板载普通 LED 每秒闪一次，说明环境搭好了，也说明 `digitalWrite()` 输出控制成功。如果 LED 亮灭相反，交换示例代码里的 `LED_ON` 和 `LED_OFF`。
 
 ---
 
@@ -210,8 +209,8 @@ Partition Scheme: Default
 
 所有例程都在 `示例代码/` 目录下，建议按顺序学：
 
-1. **01_LED闪烁** - 板载 RGB 闪烁  
-   不需要接线，先验证环境、板卡和上传流程
+1. **01_LED闪烁** - 板载普通 LED 闪烁
+   不需要接线，先验证环境、板卡、上传流程和普通 GPIO 输出
 
 2. **02_串口调试** - 串口输出  
    学会用 Serial.println 调试
@@ -219,8 +218,8 @@ Partition Scheme: Default
 3. **03_舵机基础控制** - 舵机基础控制  
    串口输入角度，舵机平滑转动
 
-4. **04_WiFi网页控制LED** - Wi-Fi 网页控制板载 RGB  
-   手机连 ESP32 热点，网页控制板载 RGB 开关，学习网页交互基础
+4. **04_WiFi网页控制LED** - Wi-Fi 网页控制板载普通 LED
+   手机连 ESP32 热点，网页控制板载普通 LED 开关，学习网页交互基础
 
 5. **05_舵机网页控制** - 舵机网页控制  
    结合舵机和网页控制，学习非阻塞编程
@@ -274,7 +273,7 @@ Partition Scheme: Default
 本教程不是一次性实验，而是面向机器人制作的项目制训练。建议按“先能用、再理解、最后整合”的顺序推进：
 
 1. **开发板认识与环境验证**
-   你需要知道 USB 口、EN/BOOT 键、GPIO、3.3V、5V、GND 的含义，完成 Arduino IDE、ESP32-S3 板卡包、串口驱动和板载 RGB 闪烁验证。
+   你需要知道 USB 口、EN/BOOT 键、GPIO、3.3V、5V、GND 的含义，完成 Arduino IDE、ESP32-S3 板卡包、串口驱动和板载普通 LED 闪烁验证。
 
 2. **基础调试能力训练**
    通过串口输出、串口输入和简单网页控制，掌握 `Serial.println()`、串口监视器、Wi-Fi AP 和浏览器访问 ESP32 的基本方法。

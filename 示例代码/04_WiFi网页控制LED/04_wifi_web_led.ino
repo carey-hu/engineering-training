@@ -1,12 +1,12 @@
 /*
-  ESP32-S3 示例 04：手机连接 ESP32 热点，用网页控制板载 RGB
+  ESP32-S3 示例 04：手机连接 ESP32 热点，用网页控制板载普通 LED
 
   本例程不需要外接 LED。手机连接 ESP32 热点后，可以在网页上控制
-  开发板板载 RGB 灯亮灭。
+  开发板板载普通 LED 亮灭。
 
   说明：
-  本教程使用的 ESP32-S3 开发板板载 RGB 为 WS2812，控制脚 GPIO48。
-  WS2812 不能用普通 digitalWrite() 控制，这里使用 neopixelWrite()。
+  本教程默认板载普通 LED 接在 GPIO2。
+  代码使用 pinMode() 和 digitalWrite()，和第一个 LED 闪烁例程保持一致。
 
   使用：
   1. 上传程序
@@ -20,18 +20,19 @@
 const char* ssid = "ESP32S3_CLASS";
 const char* password = "12345678";
 
-const int ONBOARD_RGB_PIN = 48;
-const int RGB_BRIGHTNESS = 20;
+const int LED_PIN = 2;
+const int LED_ON = HIGH;
+const int LED_OFF = LOW;
 WebServer server(80);
 
 String htmlPage() {
   String html = "";
   html += "<!DOCTYPE html><html><head><meta charset='utf-8'>";
   html += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
-  html += "<title>ESP32-S3 Web RGB</title>";
+  html += "<title>ESP32-S3 Web LED</title>";
   html += "<style>body{font-family:Arial;text-align:center;margin-top:40px;}button{font-size:24px;padding:16px 32px;margin:10px;}</style>";
   html += "</head><body>";
-  html += "<h2>ESP32-S3 网页控制板载 RGB</h2>";
+  html += "<h2>ESP32-S3 网页控制板载 LED</h2>";
   html += "<button onclick=\"fetch('/on')\">开灯</button>";
   html += "<button onclick=\"fetch('/off')\">关灯</button>";
   html += "</body></html>";
@@ -43,17 +44,19 @@ void handleRoot() {
 }
 
 void handleOn() {
-  neopixelWrite(ONBOARD_RGB_PIN, 0, RGB_BRIGHTNESS, 0);
-  server.send(200, "text/plain", "RGB ON");
+  digitalWrite(LED_PIN, LED_ON);
+  server.send(200, "text/plain", "LED ON");
 }
 
 void handleOff() {
-  neopixelWrite(ONBOARD_RGB_PIN, 0, 0, 0);
-  server.send(200, "text/plain", "RGB OFF");
+  digitalWrite(LED_PIN, LED_OFF);
+  server.send(200, "text/plain", "LED OFF");
 }
 
 void setup() {
-  neopixelWrite(ONBOARD_RGB_PIN, 0, 0, 0);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LED_OFF);
+
   Serial.begin(115200);
   delay(1000);
 
