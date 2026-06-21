@@ -8,15 +8,19 @@
 
 | 你要做什么 | 从这里进入 |
 |------------|------------|
-| 第一次学习 | [00 学习路线](教程文档/00_learning_path.md) |
+| **第一次学习** | **[00 学习路线](教程文档/00_learning_path.md)** ⭐ |
 | 下载 Arduino IDE 和驱动 | [00 下载链接](教程文档/00_downloads_cn.md) |
 | Windows 环境搭建 | [01 Windows 安装教程](教程文档/01_install_windows.md) |
 | macOS 环境搭建 | [02 macOS 安装教程](教程文档/02_install_macos.md) |
 | ESP32-S3 板卡参数 | [03 板卡设置](教程文档/03_board_settings_esp32s3.md) |
+| WiFi 和网页控制入门 | [04 WiFi AP 模式指南](教程文档/04_wifi_ap_guide.md) |
+| 网页控制舵机进阶 | [05 网页控制舵机](教程文档/05_web_servo_guide.md) |
 | 硬件资料说明 | [06 硬件资料说明](教程文档/06_hardware_info.md) |
 | 舵机使用 | [07 舵机指南](教程文档/07_servo_guide.md) |
 | 电机使用 | [08 电机指南](教程文档/08_motor_guide.md) |
 | 机器人整合 | [09 机器人整合](教程文档/09_robot_integration.md) |
+| **遇到问题看这里** | **[FAQ 常见问题](教程文档/FAQ_troubleshooting.md)** 🔧 |
+| 项目交付模板 | [报告模板](示例代码/交付模板/项目报告模板.md) / [异常记录模板](示例代码/交付模板/异常记录模板.md) |
 
 ## 开发板说明
 

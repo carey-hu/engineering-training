@@ -1,26 +1,133 @@
 /*
   ESP32-S3 示例 01：板载普通 LED 闪烁
 
-  上传后，开发板上的板载普通 LED 会每秒闪烁一次。
-  本例程只使用 pinMode() 和 digitalWrite()，适合作为 GPIO 输出第一课。
+  【学习目标】
+  1. 理解 Arduino 程序的基本结构（setup 和 loop）
+  2. 学会使用 pinMode() 设置引脚模式
+  3. 学会使用 digitalWrite() 控制引脚输出高低电平
+  4. 理解 delay() 延时函数的作用
 
-  本教程默认板载普通 LED 接在 GPIO2。
-  如果你的板子 LED 亮灭相反，交换 LED_ON 和 LED_OFF 的值即可。
+  【硬件接线】
+  本例程使用板载 LED，不需要接线。
+  - 板载 LED 默认连接到 GPIO2
+  - 开发板上电后，LED 会自动供电
+
+  【预期现象】
+  上传成功后，板载 LED 会以 1 秒为周期闪烁：
+  - 亮 0.5 秒 → 灭 0.5 秒 → 亮 0.5 秒 → ...
+  - 持续循环，不会停止
+
+  【故障排查】
+  如果 LED 不闪烁：
+  1. 检查上传是否成功（IDE 底部显示 "Done uploading"）
+  2. 按一下开发板的 EN 或 RST 键，让程序重新运行
+  3. 如果 LED 亮灭相反，交换下面 LED_ON 和 LED_OFF 的值
+
+  【相关教程】
+  - 环境搭建：教程文档/01_install_windows.md 或 02_install_macos.md
+  - 学习路线：教程文档/00_learning_path.md
+  - 常见问题：教程文档/FAQ_troubleshooting.md
 */
 
-const int LED_PIN = 2;
-const int LED_ON = HIGH;
-const int LED_OFF = LOW;
+// ==================== 引脚和常量定义 ====================
+
+const int LED_PIN = 2;      // LED 连接的 GPIO 引脚号
+                            // GPIO2 是 ESP32-S3 开发板的板载 LED 引脚
+                            // 不同开发板可能不同，需查看板卡原理图
+
+const int LED_ON = HIGH;    // LED 点亮时的电平状态
+                            // HIGH = 高电平（3.3V）
+                            // 部分开发板 LED 是低电平点亮，需改为 LOW
+
+const int LED_OFF = LOW;    // LED 熄灭时的电平状态
+                            // LOW = 低电平（0V）
+
+// ==================== 初始化函数 ====================
 
 void setup() {
+  // setup() 函数在程序启动时只执行一次
+  // 用于初始化硬件、设置引脚模式、打开串口等
+
+  // pinMode() - 设置引脚的工作模式
+  // 参数1：LED_PIN (GPIO2) - 要设置的引脚编号
+  // 参数2：OUTPUT - 输出模式，表示这个引脚用来控制外部设备（如 LED、舵机）
+  //        其他模式还有：INPUT（输入模式，读取按钮、传感器）
+  //                    INPUT_PULLUP（输入上拉模式）
   pinMode(LED_PIN, OUTPUT);
+
+  // digitalWrite() - 向引脚写入高电平或低电平
+  // 参数1：LED_PIN - 要控制的引脚
+  // 参数2：LED_OFF (LOW) - 写入低电平，让 LED 熄灭
+  //        HIGH 表示高电平（3.3V），LOW 表示低电平（0V）
   digitalWrite(LED_PIN, LED_OFF);
+
+  // 初始化完成后，LED 处于熄灭状态
+  // 接下来程序会自动进入 loop() 函数
 }
+
+// ==================== 主循环函数 ====================
 
 void loop() {
-  digitalWrite(LED_PIN, LED_ON);
+  // loop() 函数会不断重复执行，永不停止
+  // 就像一个无限循环：while(true) { ... }
+
+  // 第 1 步：点亮 LED
+  digitalWrite(LED_PIN, LED_ON);   // 写入 HIGH，LED 点亮
+
+  // delay() - 延时（暂停）指定的毫秒数
+  // 参数：500 毫秒 = 0.5 秒
+  // 作用：让 LED 保持点亮状态 0.5 秒
+  // 注意：delay() 会阻塞程序，期间无法做其他事情
   delay(500);
 
-  digitalWrite(LED_PIN, LED_OFF);
+  // 第 2 步：熄灭 LED
+  digitalWrite(LED_PIN, LED_OFF);  // 写入 LOW，LED 熄灭
+
+  // 再次延时 0.5 秒
   delay(500);
+
+  // loop() 函数执行完毕后，会自动从头开始执行
+  // 形成循环：点亮 → 等待 0.5 秒 → 熄灭 → 等待 0.5 秒 → 点亮 → ...
 }
+
+// ==================== 知识扩展 ====================
+
+/*
+  【Arduino 程序结构】
+
+  所有 Arduino 程序都包含两个必需的函数：
+
+  1. setup()  - 初始化函数，只执行一次
+  2. loop()   - 主循环函数，不断重复执行
+
+  执行顺序：
+
+  上电/复位 → setup() → loop() → loop() → loop() → ...
+                ↑        ↓         ↑
+              执行一次    无限循环
+
+  【电平的概念】
+
+  - HIGH（高电平）：引脚输出 3.3V 电压
+  - LOW（低电平）： 引脚输出 0V 电压
+
+  LED 点亮原理：
+  - 正向电流：GPIO2 输出 3.3V → LED → GND → 电流流动 → LED 点亮
+
+  【为什么是 500 毫秒？】
+
+  delay(500) 表示延时 500 毫秒 = 0.5 秒
+
+  一个完整周期 = 500ms（亮）+ 500ms（灭）= 1000ms = 1 秒
+  所以 LED 每秒闪烁一次。
+
+  如果想改变闪烁速度：
+  - delay(100)  → 每秒闪烁 5 次（快速闪烁）
+  - delay(1000) → 每秒闪烁 0.5 次（慢速闪烁）
+
+  【下一步学习】
+
+  完成本例程后，继续学习：
+  - 示例代码/02_串口调试/ - 学会用串口输出调试信息
+  - 示例代码/03_舵机基础控制/ - 控制舵机转动
+*/
