@@ -1,0 +1,3 @@
+*.ino linguist-language=C++
+教程文档/** linguist-documentation
+硬件资料/** linguist-documentation
