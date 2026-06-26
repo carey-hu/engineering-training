@@ -2,8 +2,9 @@
   ESP32-S3 示例 07：MG4010-i10 多圈位置闭环控制
 
   关键参数：
-  - 角度：按输出轴角度处理，不乘减速比
-  - 速度：按电机侧速度处理，需乘减速比 10
+  - 角度：用户输入输出轴角度（度），内部转换为电机侧角度（需乘减速比 10）
+  - 速度：用户输入输出轴转速（RPM），内部转换为 dps 再乘减速比
+    RPM 与 dps 换算：1 RPM = 6 dps（1圈360度，1分钟60秒，360/60=6）
   - 软件零点：上电后把当前位置定义为 0 点
 
   接线与 05 基础控制例程相同，推荐使用课程配套 RS485/供电转接板：
@@ -13,7 +14,7 @@
   串口命令：
   r       读取当前角度
   z       设为软件零点
-  v 30    设置最大速度 30 dps
+  v 5     设置最大转速 5 RPM
   30      转到 30°
   +30     增加 30°
   -30     减少 30°
@@ -29,13 +30,13 @@
 #define MOTOR_ID      0x01            // 电机 ID
 #define RS485_BAUD    115200          // 通讯波特率
 
-#define ANGLE_SCALE   1.0f            // 角度缩放系数（输出轴角度）
-#define SPEED_SCALE   10.0f           // 速度缩放系数（减速比）
+#define REDUCTION     10.0f           // 电机减速比 1:10
+#define RPM_TO_DPS    6.0f            // RPM 转 dps 系数（360度/60秒=6）
 
-#define MIN_ANGLE     -720.0f         // 最小角度限制
-#define MAX_ANGLE     720.0f          // 最大角度限制
-#define MIN_SPEED     5.0f            // 最小速度限制
-#define MAX_SPEED     360.0f          // 最大速度限制
+#define MIN_ANGLE     -720.0f         // 最小角度限制（输出轴）
+#define MAX_ANGLE     720.0f          // 最大角度限制（输出轴）
+#define MIN_SPEED     1.0f            // 最小转速限制（输出轴 RPM）
+#define MAX_SPEED     60.0f           // 最大转速限制（输出轴 RPM）
 
 #define CMD_MOTOR_OFF    0x80         // 电机关闭命令
 #define CMD_MOTOR_STOP   0x81         // 电机停止命令
@@ -46,8 +47,8 @@
 HardwareSerial RS485(2);              // 使用串口2
 
 int64_t softZeroRaw = 0;              // 软件零点原始值
-float targetAngle = 0.0f;             // 目标角度
-float maxSpeed = 30.0f;               // 最大运行速度
+float targetAngle = 0.0f;             // 目标角度（度）
+float maxSpeed = 5.0f;                // 最大运行转速（RPM）
 
 void setRS485Mode(bool isTx) {       // 设置 RS485 收发模式
   if (isTx && RS485_DE_RE >= 0) {
@@ -152,7 +153,7 @@ void readAndPrintAngle() {                 // 读取并打印当前角度
     return;
   }
 
-  float angle = (raw - softZeroRaw) / 100.0f / ANGLE_SCALE;  // 换算为相对角度
+  float angle = (raw - softZeroRaw) / 100.0f / REDUCTION;  // 电机侧角度 → 输出轴角度
   Serial.printf("当前角度: %.2f°\n", angle);
 }
 
@@ -169,18 +170,21 @@ bool setZeroHere() {                       // 将当前位置设为软件零点
   return true;
 }
 
-bool setPosition(float angle) {            // 设置电机目标位置
+bool setPosition(float angle) {            // 设置电机目标位置（输出轴角度）
   angle = constrain(angle, MIN_ANGLE, MAX_ANGLE);  // 限制角度范围
   targetAngle = angle;                     // 更新目标角度
 
-  int64_t targetRaw = softZeroRaw + (int64_t)(angle * ANGLE_SCALE * 100.0f);  // 换算为绝对原始值
-  uint32_t speedRaw = (uint32_t)(constrain(maxSpeed, MIN_SPEED, MAX_SPEED) * SPEED_SCALE * 100.0f);  // 换算速度
+  // 输出轴角度 → 电机侧角度 → 协议原始值
+  int64_t targetRaw = softZeroRaw + (int64_t)(angle * REDUCTION * 100.0f);
+  // 输出轴转速(RPM) → dps → 电机侧速度 → 协议原始值
+  float maxSpeedDps = constrain(maxSpeed, MIN_SPEED, MAX_SPEED) * RPM_TO_DPS;
+  uint32_t speedRaw = (uint32_t)(maxSpeedDps * REDUCTION * 100.0f);
 
   uint8_t data[12];
   writeLittleEndian(data, targetRaw);      // 写入目标位置（8字节）
   writeLittleEndian(data + 8, speedRaw);   // 写入最大速度（4字节）
 
-  Serial.printf("目标: %.2f°, 速度: %.2f dps\n", angle, maxSpeed);
+  Serial.printf("目标: %.2f°, 转速: %.2f RPM (%.2f dps)\n", angle, maxSpeed, maxSpeedDps);
 
   if (!sendMotorCommand(CMD_MOTOR_RUN)) return false;  // 启用电机
   delay(5);
@@ -209,9 +213,11 @@ void handleCommand() {                     // 处理串口命令
     Serial.println("关闭");
   } else if (input == "0") {               // 回零位
     setPosition(0.0f);
-  } else if (input.startsWith("v ")) {     // 设置速度
-    maxSpeed = constrain(input.substring(2).toFloat(), MIN_SPEED, MAX_SPEED);
-    Serial.printf("速度设为 %.2f dps\n", maxSpeed);
+  } else if (input.startsWith("v")) {      // 设置转速（支持 v5 或 v 5）
+    String speedStr = input.substring(1);
+    speedStr.trim();  // 去除前后空格
+    maxSpeed = constrain(speedStr.toFloat(), MIN_SPEED, MAX_SPEED);
+    Serial.printf("转速设为 %.2f RPM\n", maxSpeed);
   } else if (input.startsWith("+") || input.startsWith("-")) {  // 增量控制
     setPosition(targetAngle + input.toFloat());
   } else {                                 // 绝对位置控制
@@ -231,7 +237,8 @@ void setup() {
   RS485.begin(RS485_BAUD, SERIAL_8N1, RS485_RX, RS485_TX);  // 初始化 RS485 串口
 
   Serial.println("\n===== MG4010-i10 位置控制 =====");
-  Serial.println("命令: r-读角度 z-零点 v30-速度 30-角度 +30-增量 t-停止 off-关闭");
+  Serial.println("命令: r-读角度 z-零点 v5-转速 30-角度 +30-增量 t-停止 off-关闭");
+  Serial.println("建议首次测试转速 5 RPM，角度从 30° 开始");
 
   if (setZeroHere()) {                     // 初始化软件零点
     Serial.println("初始化完成\n");

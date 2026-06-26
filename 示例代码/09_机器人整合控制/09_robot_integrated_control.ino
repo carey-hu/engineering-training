@@ -76,14 +76,14 @@ inline void rs485ControlMode(bool transmit) {            // 切换RS485收发模
 void initServos() {                                      // 初始化所有舵机
   uint8_t pins[] = {GPIO_SERVO1, GPIO_SERVO2, GPIO_SERVO3, GPIO_SERVO4};
   for (uint8_t i = 0; i < 4; i++) {
-    ledcSetup(i, LEDC_BASE_FREQ, LEDC_TIMER_BIT);       // 配置PWM通道
-    ledcAttachPin(pins[i], i);                           // 绑定引脚到通道
-    ledcWrite(i, servoTargets[i]);                       // 写入初始值
+    ledcAttach(pins[i], LEDC_BASE_FREQ, LEDC_TIMER_BIT); // 配置PWM（新版API）
+    ledcWrite(pins[i], servoTargets[i]);                  // 写入初始值
   }
 }
 
 inline void updateServos() {                             // 更新所有舵机PWM输出
-  for (uint8_t i = 0; i < 4; i++) ledcWrite(i, servoTargets[i]);
+  uint8_t pins[] = {GPIO_SERVO1, GPIO_SERVO2, GPIO_SERVO3, GPIO_SERVO4};
+  for (uint8_t i = 0; i < 4; i++) ledcWrite(pins[i], servoTargets[i]);
 }
 
 inline void waitAndUpdateServos() {                      // 更新舵机并等待
