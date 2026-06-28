@@ -1,284 +1,330 @@
 /*
- * 机器人整合控制示例 - 驱动麦克纳姆轮底盘和多自由度机械臂
+ * 两电机四舵机机器人整合控制示例
  *
- * 硬件连接：
- * - RS485：TX=GPIO17, RX=GPIO18, DE/RE=GPIO16
- * - 四个机械臂舵机分别连接到 GPIO_SERVO1-4
- * - WS2812B LED 连接到 GPIO48（板载）
+ * 硬件配置：
+ * - 两个 MG4010-i10 RS485 电机（ID 1 和 ID 2）
+ * - 四个 PWM 舵机（GPIO10/11/12/13）
+ * - ESP32-S3 开发板
  *
- * 串口指令格式：
- * 底盘控制：
- *   1 <Vx> <Vy> <Vw>      // 设置底盘速度（-100 到 100）
- *   2                      // 停止底盘运动
+ * 接线说明：
+ * ⚠️ 警告：舵机和电机必须使用独立电源，不能从 ESP32 取电！
  *
- * 舵机控制：
- *   3 <id> <angle>         // 单独控制舵机（id: 1-4, angle: 0-180°）
- *   4 <a1> <a2> <a3> <a4>  // 同时控制四个舵机角度
+ * RS485 连接（课程转接板）：
+ *   ESP32 GPIO17 → 转接板 TTL-485 调试口 T
+ *   ESP32 GPIO18 → 转接板 TTL-485 调试口 R
+ *   ESP32 GND    → 转接板 GND（必须共地）
  *
- * LED控制：
- *   5 <r> <g> <b>          // 设置 LED 颜色（0-255）
+ * 舵机连接：
+ *   舵机1信号线 → GPIO10
+ *   舵机2信号线 → GPIO11
+ *   舵机3信号线 → GPIO12
+ *   舵机4信号线 → GPIO13
+ *   所有舵机 GND → 独立 5V 电源 GND → ESP32 GND（共地）
+ *   所有舵机 VCC → 独立 5V 电源 +5V（不接 ESP32）
+ *
+ * 电机连接：
+ *   通过课程转接板连接，详见教程文档/09_robot_integration.md
+ *
+ * 串口命令格式（115200 波特率）：
+ *   v <左速度> <右速度>    设置电机速度（RPM，范围 -60 到 60）
+ *   pose <角度1> <角度2> <角度3> <角度4>  设置四舵机角度（0-180°）
+ *   home                   所有舵机回中位（90°），电机停止
+ *   stop                   紧急停止所有运动
  *
  * 示例：
- *   1 50 0 0       // 底盘向前运动
- *   3 1 90         // 第一个舵机转到 90 度
- *   4 90 45 135 0  // 设置所有舵机角度
- *   5 255 0 0      // LED 设为红色
+ *   v 20 20        两电机都以 20 RPM 前进
+ *   v 20 -20       左电机前进，右电机后退（原地转向）
+ *   pose 45 90 135 0   设置四个舵机角度
+ *   home           回到初始姿态
+ *   stop           紧急停止
  */
 
 #include <Arduino.h>
-#include <Adafruit_NeoPixel.h>
 
 // ========== 引脚定义 ==========
-#define RS485_TX 17        // RS485 发送引脚
-#define RS485_RX 18        // RS485 接收引脚
-#define RS485_DE 16        // RS485 收发控制引脚
+const int RS485_TX = 17;        // RS485 发送引脚
+const int RS485_RX = 18;        // RS485 接收引脚
+const int RS485_DE = -1;        // 课程转接板不使用 DE/RE 控制，设为 -1
 
-#define GPIO_SERVO1 14     // 舵机1控制引脚
-#define GPIO_SERVO2 13     // 舵机2控制引脚
-#define GPIO_SERVO3 12     // 舵机3控制引脚
-#define GPIO_SERVO4 11     // 舵机4控制引脚
+const int SERVO_PINS[4] = {10, 11, 12, 13}; // 四个舵机引脚
 
-#define WS2812B_PIN 48     // 板载LED引脚
-#define WS2812B_COUNT 1    // LED数量
+// ========== MG4010 协议常量 ==========
+const uint8_t FRAME_HEADER = 0x3E;     // 帧头（MG4010 协议）
+const uint8_t CMD_MOTOR_RUN = 0x88;    // 运行命令
+const uint8_t CMD_MOTOR_STOP = 0x81;   // 停止命令
+const uint8_t CMD_SPEED_MODE = 0xF6;   // 速度模式命令
+const uint8_t CMD_READ_STATE2 = 0x74;  // 读取状态2命令
 
-// ========== 麦克纳姆轮运动学参数 ==========
-#define WHEEL_RADIUS 0.05f // 轮子半径（米）
-#define LX 0.15f           // 车体半长（米）
-#define LY 0.10f           // 车体半宽（米）
+const uint8_t MOTOR_ID_LEFT = 1;       // 左电机 ID
+const uint8_t MOTOR_ID_RIGHT = 2;      // 右电机 ID
 
-// ========== RS485 协议常量 ==========
-#define FRAME_HEADER 0xAA  // 帧头标志
-#define FRAME_FOOTER 0x55  // 帧尾标志
-#define FRAME_LENGTH 8     // 帧长度
-#define MOTOR_COUNT 4      // 电机数量
+const float REDUCTION = 10.0f;         // 减速比 1:10
+const float RPM_TO_DPS = 6.0f;         // RPM 转 dps（度每秒）
 
 // ========== PWM 配置 ==========
-#define LEDC_TIMER_BIT 13  // PWM分辨率
-#define LEDC_BASE_FREQ 50  // PWM频率50Hz
-#define PWM_MIN_DUTY 1638  // 0.5ms对应0度
-#define PWM_MAX_DUTY 8192  // 2.5ms对应180度
+const int PWM_FREQ = 50;               // 舵机 PWM 频率 50Hz
+const int PWM_RESOLUTION = 13;         // 13位分辨率
+const int PWM_MIN = 205;               // 0.5ms → 0°
+const int PWM_MAX = 1024;              // 2.5ms → 180°
 
-// ========== 全局对象 ==========
-Adafruit_NeoPixel strip(WS2812B_COUNT, WS2812B_PIN, NEO_GRB + NEO_KHZ800); // LED对象
+// ========== 安全限制 ==========
+const float MAX_MOTOR_RPM = 60.0f;     // 输出轴最大转速（安全限制）
+const float MIN_MOTOR_RPM = -60.0f;    // 输出轴最小转速
 
-// ========== 状态数组 ==========
-uint8_t motorIDs[MOTOR_COUNT] = {1, 2, 3, 4};           // 电机ID数组
-int8_t motorSpeeds[MOTOR_COUNT] = {0, 0, 0, 0};         // 电机速度数组
-uint16_t servoTargets[4] = {1500, 1500, 1500, 1500};    // 舵机目标值数组
+// ========== 全局变量 ==========
+uint16_t servoTargets[4] = {512, 512, 512, 512}; // 舵机目标 PWM 值（初始 90°）
+unsigned long lastServoUpdate = 0;
+const unsigned long servoUpdateInterval = 20; // 舵机更新间隔 20ms
 
-// ========== RS485 控制 ==========
-inline void rs485ControlMode(bool transmit) {            // 切换RS485收发模式
-  digitalWrite(RS485_DE, transmit ? HIGH : LOW);         // HIGH为发送，LOW为接收
-  if (!transmit) delayMicroseconds(100);                 // 接收模式等待稳定
+// ========== RS485 通信函数 ==========
+
+// 计算校验和（累加和，取低8位）
+uint8_t calculateChecksum(const uint8_t* data, int length) {
+  uint16_t sum = 0;
+  for (int i = 0; i < length; i++) {
+    sum += data[i];
+  }
+  return (uint8_t)(sum & 0xFF);
 }
 
-// ========== 舵机控制 ==========
-void initServos() {                                      // 初始化所有舵机
-  uint8_t pins[] = {GPIO_SERVO1, GPIO_SERVO2, GPIO_SERVO3, GPIO_SERVO4};
-  for (uint8_t i = 0; i < 4; i++) {
-    ledcAttach(pins[i], LEDC_BASE_FREQ, LEDC_TIMER_BIT); // 配置PWM（新版API）
-    ledcWrite(pins[i], servoTargets[i]);                  // 写入初始值
+// 发送命令到指定电机
+// 协议格式：0x3E + cmd + id + dataLen + [data] + checksum
+void sendMotorCommand(uint8_t motorID, uint8_t cmd, const uint8_t* params = nullptr, uint8_t paramLen = 0) {
+  uint8_t frame[16];
+  int idx = 0;
+
+  frame[idx++] = FRAME_HEADER;  // 帧头
+  frame[idx++] = cmd;            // 命令
+  frame[idx++] = motorID;        // 电机 ID
+  frame[idx++] = paramLen;       // 数据长度
+
+  // 添加参数数据
+  if (params != nullptr && paramLen > 0) {
+    for (int i = 0; i < paramLen; i++) {
+      frame[idx++] = params[i];
+    }
+  }
+
+  // 计算校验和（不包含帧头，包含 cmd + id + dataLen + data）
+  frame[idx] = calculateChecksum(&frame[1], idx - 1);
+  idx++;
+
+  // 发送帧
+  Serial1.write(frame, idx);
+  Serial1.flush();
+}
+
+// 设置电机速度（RPM）
+void setMotorSpeed(uint8_t motorID, float rpm) {
+  // 安全限制
+  rpm = constrain(rpm, MIN_MOTOR_RPM, MAX_MOTOR_RPM);
+
+  // 单位换算：输出轴 RPM → 电机侧 dps → 协议值（0.01 dps/LSB）
+  // 电机侧速度 = 输出轴速度 × 减速比
+  // 协议值 = 电机侧速度（dps）× 100
+  float motorDps = rpm * RPM_TO_DPS * REDUCTION;  // 电机侧 dps
+  int32_t speedValue = (int32_t)(motorDps * 100.0f); // 协议值
+
+  // 构造参数：4字节小端序
+  uint8_t params[4];
+  params[0] = (speedValue) & 0xFF;
+  params[1] = (speedValue >> 8) & 0xFF;
+  params[2] = (speedValue >> 16) & 0xFF;
+  params[3] = (speedValue >> 24) & 0xFF;
+
+  // 先发送运行命令
+  sendMotorCommand(motorID, CMD_MOTOR_RUN);
+  delay(10);
+
+  // 再发送速度命令
+  sendMotorCommand(motorID, CMD_SPEED_MODE, params, 4);
+}
+
+// 停止电机
+void stopMotor(uint8_t motorID) {
+  sendMotorCommand(motorID, CMD_MOTOR_STOP);
+}
+
+// 停止所有电机
+void stopAllMotors() {
+  stopMotor(MOTOR_ID_LEFT);
+  delay(5);
+  stopMotor(MOTOR_ID_RIGHT);
+}
+
+// ========== 舵机控制函数 ==========
+
+// 初始化所有舵机
+void initServos() {
+  for (int i = 0; i < 4; i++) {
+    ledcAttach(SERVO_PINS[i], PWM_FREQ, PWM_RESOLUTION);
+    ledcWrite(SERVO_PINS[i], servoTargets[i]);
   }
 }
 
-inline void updateServos() {                             // 更新所有舵机PWM输出
-  uint8_t pins[] = {GPIO_SERVO1, GPIO_SERVO2, GPIO_SERVO3, GPIO_SERVO4};
-  for (uint8_t i = 0; i < 4; i++) ledcWrite(pins[i], servoTargets[i]);
-}
-
-inline void waitAndUpdateServos() {                      // 更新舵机并等待
-  updateServos();
-  delayMicroseconds(100);                                // 短暂延时确保稳定
-}
-
-void setServoAngle(uint8_t id, uint16_t angle) {         // 设置单个舵机角度
-  if (id >= 1 && id <= 4) {
-    servoTargets[id - 1] = map(constrain(angle, 0, 180), 0, 180, PWM_MIN_DUTY, PWM_MAX_DUTY); // 角度转PWM占空比
-    updateServos();
+// 更新所有舵机 PWM 输出（非阻塞）
+void updateServos() {
+  unsigned long now = millis();
+  if (now - lastServoUpdate >= servoUpdateInterval) {
+    lastServoUpdate = now;
+    for (int i = 0; i < 4; i++) {
+      ledcWrite(SERVO_PINS[i], servoTargets[i]);
+    }
   }
 }
 
-void setAllServoAngles(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4) { // 设置所有舵机角度
-  uint16_t angles[] = {a1, a2, a3, a4};
-  for (uint8_t i = 0; i < 4; i++) {
-    servoTargets[i] = map(constrain(angles[i], 0, 180), 0, 180, PWM_MIN_DUTY, PWM_MAX_DUTY); // 批量转换
-  }
-  updateServos();
+// 角度转 PWM 占空比
+uint16_t angleToDuty(int angle) {
+  angle = constrain(angle, 0, 180);
+  return map(angle, 0, 180, PWM_MIN, PWM_MAX);
 }
 
-// ========== LED 控制 ==========
-void setLED(uint8_t r, uint8_t g, uint8_t b) {           // 设置LED颜色
-  strip.setPixelColor(0, strip.Color(r, g, b));          // 设置RGB值
-  strip.show();                                           // 刷新显示
-}
-
-// ========== 数据打包 ==========
-uint8_t calculateCRC(const uint8_t* data, size_t len) {  // 计算校验和
-  uint8_t crc = 0;
-  for (size_t i = 0; i < len; i++) crc += data[i];       // 累加所有字节
-  return crc;
-}
-
-// ========== RS485 通信 ==========
-void motorCommand(uint8_t id, int8_t speed) {            // 发送电机控制指令
-  speed = constrain(speed, -100, 100);                   // 限制速度范围
-
-  uint8_t frame[FRAME_LENGTH];                           // 创建数据帧
-  frame[0] = FRAME_HEADER;                               // 设置帧头
-  frame[1] = id;                                          // 设置电机ID
-
-  uint8_t mode = (speed == 0) ? 0x00 : 0x01;            // 0为停止，1为运行
-  frame[2] = mode;                                        // 设置运行模式
-
-  int16_t speedValue = (mode == 0x00) ? 0 : speed;      // 停止时速度清零
-  memcpy(&frame[3], &speedValue, sizeof(int16_t));      // 拷贝速度值
-
-  frame[5] = 0x00;                                        // 保留字节
-  frame[6] = calculateCRC(frame, 6);                     // 计算校验码
-  frame[7] = FRAME_FOOTER;                               // 设置帧尾
-
-  rs485ControlMode(true);                                // 切换到发送模式
-  Serial1.write(frame, FRAME_LENGTH);                    // 发送数据帧
-  Serial1.flush();                                        // 等待发送完成
-  rs485ControlMode(false);                               // 切换回接收模式
-
-  delay(10);                                              // 指令间隔延时
-}
-
-// ========== 麦克纳姆轮运动学 ==========
-void mecanumKinematics(float Vx, float Vy, float Vw, float* wheelSpeeds) { // 逆运动学计算
-  wheelSpeeds[0] = (Vx - Vy - (LX + LY) * Vw) / WHEEL_RADIUS; // 左前轮速度
-  wheelSpeeds[1] = (Vx + Vy + (LX + LY) * Vw) / WHEEL_RADIUS; // 右前轮速度
-  wheelSpeeds[2] = (Vx + Vy - (LX + LY) * Vw) / WHEEL_RADIUS; // 左后轮速度
-  wheelSpeeds[3] = (Vx - Vy + (LX + LY) * Vw) / WHEEL_RADIUS; // 右后轮速度
-}
-
-void normalizeWheelSpeeds(float* wheelSpeeds, float maxSpeed) { // 归一化轮速
-  float maxVal = 0.0f;
-  for (uint8_t i = 0; i < MOTOR_COUNT; i++) {
-    float absVal = fabs(wheelSpeeds[i]);                 // 取绝对值
-    if (absVal > maxVal) maxVal = absVal;                // 找最大值
-  }
-
-  if (maxVal > maxSpeed) {                               // 超出限制需缩放
-    float scale = maxSpeed / maxVal;                     // 计算缩放比例
-    for (uint8_t i = 0; i < MOTOR_COUNT; i++) wheelSpeeds[i] *= scale; // 等比缩放
+// 设置单个舵机角度
+void setServoAngle(int servoID, int angle) {
+  if (servoID >= 1 && servoID <= 4) {
+    servoTargets[servoID - 1] = angleToDuty(angle);
   }
 }
 
-void setMotorOutputSpeed(float speed, uint8_t motorIndex) { // 设置电机输出速度
-  motorSpeeds[motorIndex] = constrain((int8_t)round(speed), -100, 100); // 四舍五入并限幅
+// 设置所有舵机角度
+void setAllServoAngles(int angle1, int angle2, int angle3, int angle4) {
+  servoTargets[0] = angleToDuty(angle1);
+  servoTargets[1] = angleToDuty(angle2);
+  servoTargets[2] = angleToDuty(angle3);
+  servoTargets[3] = angleToDuty(angle4);
 }
 
-void setChassisVelocity(float Vx, float Vy, float Vw) { // 设置底盘速度
-  float wheelSpeeds[MOTOR_COUNT];                        // 创建轮速数组
-  mecanumKinematics(Vx, Vy, Vw, wheelSpeeds);           // 计算各轮速度
-  normalizeWheelSpeeds(wheelSpeeds, 100.0f);            // 归一化到-100~100
-
-  for (uint8_t i = 0; i < MOTOR_COUNT; i++) {
-    setMotorOutputSpeed(wheelSpeeds[i], i);              // 设置电机速度
-  }
-
-  Serial.printf("设定底盘速度 Vx=%.2f, Vy=%.2f, Vw=%.2f -> 轮速=[%d, %d, %d, %d]\n",
-                Vx, Vy, Vw, motorSpeeds[0], motorSpeeds[1], motorSpeeds[2], motorSpeeds[3]);
-
-  for (uint8_t i = 0; i < MOTOR_COUNT; i++) {
-    motorCommand(motorIDs[i], motorSpeeds[i]);           // 发送速度指令
-    waitAndUpdateServos();                               // 更新舵机并等待
-  }
+// 回中位（所有舵机 90°）
+void homePosition() {
+  setAllServoAngles(90, 90, 90, 90);
+  stopAllMotors();
+  Serial.println("回到初始姿态：舵机 90°，电机停止");
 }
 
-void stopChassis() {                                     // 停止底盘运动
-  Serial.println("停止底盘运动");
-  for (uint8_t i = 0; i < MOTOR_COUNT; i++) {
-    motorSpeeds[i] = 0;                                  // 清零速度
-    motorCommand(motorIDs[i], 0);                        // 发送停止指令
-    waitAndUpdateServos();                               // 更新舵机并等待
+// ========== 串口命令解析 ==========
+
+void processCommand() {
+  if (!Serial.available()) return;
+
+  String input = Serial.readStringUntil('\n');
+  input.trim();
+
+  if (input.length() == 0) return;
+
+  Serial.print("收到命令: ");
+  Serial.println(input);
+
+  // 解析命令
+  int spaceIndex = input.indexOf(' ');
+  String cmd = (spaceIndex > 0) ? input.substring(0, spaceIndex) : input;
+  String args = (spaceIndex > 0) ? input.substring(spaceIndex + 1) : "";
+
+  cmd.toLowerCase();
+
+  if (cmd == "v") {
+    // v <左速度> <右速度>
+    int space2 = args.indexOf(' ');
+    if (space2 > 0) {
+      float leftRPM = args.substring(0, space2).toFloat();
+      float rightRPM = args.substring(space2 + 1).toFloat();
+
+      setMotorSpeed(MOTOR_ID_LEFT, leftRPM);
+      delay(10);
+      setMotorSpeed(MOTOR_ID_RIGHT, rightRPM);
+
+      Serial.printf("设置速度：左 %.1f RPM，右 %.1f RPM\n", leftRPM, rightRPM);
+    } else {
+      Serial.println("错误：需要两个速度参数，如 v 20 20");
+    }
   }
-}
+  else if (cmd == "pose") {
+    // pose <角度1> <角度2> <角度3> <角度4>
+    int angles[4];
+    int count = 0;
+    int lastIndex = 0;
 
-// ========== 串口指令解析 ==========
-void processSerialCommand() {                            // 处理串口指令
-  if (!Serial.available()) return;                       // 无数据则返回
+    for (int i = 0; i < 4; i++) {
+      int nextSpace = args.indexOf(' ', lastIndex);
+      String angleStr;
 
-  int cmdType = Serial.parseInt();                       // 读取指令类型
+      if (i < 3) {
+        if (nextSpace > lastIndex) {
+          angleStr = args.substring(lastIndex, nextSpace);
+          lastIndex = nextSpace + 1;
+        } else {
+          break;
+        }
+      } else {
+        angleStr = args.substring(lastIndex);
+      }
 
-  switch (cmdType) {
-    case 1: {                                            // 底盘速度控制
-      float Vx = Serial.parseFloat();                    // 读取X方向速度
-      float Vy = Serial.parseFloat();                    // 读取Y方向速度
-      float Vw = Serial.parseFloat();                    // 读取角速度
-      setChassisVelocity(Vx, Vy, Vw);                   // 设置底盘速度
-      break;
+      angles[count++] = angleStr.toInt();
     }
 
-    case 2:                                              // 停止底盘
-      stopChassis();
-      break;
-
-    case 3: {                                            // 单个舵机控制
-      uint8_t id = Serial.parseInt();                    // 读取舵机ID
-      uint16_t angle = Serial.parseInt();                // 读取目标角度
-      setServoAngle(id, angle);                          // 设置舵机角度
-      Serial.printf("舵机 %d 转到 %d°\n", id, angle);
-      break;
-    }
-
-    case 4: {                                            // 所有舵机控制
-      uint16_t angles[4];
-      for (uint8_t i = 0; i < 4; i++) angles[i] = Serial.parseInt(); // 读取四个角度
-      setAllServoAngles(angles[0], angles[1], angles[2], angles[3]); // 批量设置
-      Serial.printf("设置所有舵机角度: [%d°, %d°, %d°, %d°]\n",
+    if (count == 4) {
+      setAllServoAngles(angles[0], angles[1], angles[2], angles[3]);
+      Serial.printf("设置舵机角度：%d° %d° %d° %d°\n",
                     angles[0], angles[1], angles[2], angles[3]);
-      break;
+    } else {
+      Serial.println("错误：需要四个角度参数，如 pose 45 90 135 0");
     }
-
-    case 5: {                                            // LED颜色控制
-      uint8_t r = Serial.parseInt();                     // 读取红色分量
-      uint8_t g = Serial.parseInt();                     // 读取绿色分量
-      uint8_t b = Serial.parseInt();                     // 读取蓝色分量
-      setLED(r, g, b);                                   // 设置LED颜色
-      Serial.printf("设置 LED 颜色: RGB(%d, %d, %d)\n", r, g, b);
-      break;
-    }
-
-    default:                                             // 无效指令
-      Serial.println(R"(无效指令。指令格式：
-1 <Vx> <Vy> <Vw>      底盘速度控制
-2                      停止底盘
-3 <id> <angle>         单个舵机控制
-4 <a1> <a2> <a3> <a4>  所有舵机控制
-5 <r> <g> <b>          LED 颜色控制)");
   }
-
-  while (Serial.available()) Serial.read();              // 清空缓冲区
+  else if (cmd == "home") {
+    // 回到初始姿态
+    homePosition();
+  }
+  else if (cmd == "stop") {
+    // 紧急停止
+    stopAllMotors();
+    Serial.println("紧急停止：所有电机已停止");
+  }
+  else {
+    Serial.println("未知命令。可用命令：");
+    Serial.println("  v <左速度> <右速度>    设置电机速度（RPM）");
+    Serial.println("  pose <角1> <角2> <角3> <角4>  设置舵机角度");
+    Serial.println("  home                   回到初始姿态");
+    Serial.println("  stop                   紧急停止");
+  }
 }
 
-// ========== 系统初始化 ==========
+// ========== 主程序 ==========
+
 void setup() {
-  Serial.begin(115200);                                  // 初始化串口监视器
-  Serial1.begin(115200, SERIAL_8N1, RS485_RX, RS485_TX); // 初始化RS485串口
+  // 初始化 USB 串口（调试用）
+  Serial.begin(115200);
+  delay(1000);
+  Serial.println("\n========== 两电机四舵机机器人整合控制 ==========");
+  Serial.println("⚠️  上电前确认：");
+  Serial.println("   1. 电机和舵机使用独立电源（不从 ESP32 取电）");
+  Serial.println("   2. 所有 GND 已连接（ESP32、电机电源、舵机电源、转接板）");
+  Serial.println("   3. 两个电机 ID 分别为 1 和 2");
+  Serial.println("   4. 首次测试使用低速（如 v 10 10）");
+  Serial.println("=====================================================\n");
 
-  pinMode(RS485_DE, OUTPUT);                             // 设置收发控制引脚
-  rs485ControlMode(false);                               // 默认接收模式
+  // 初始化 RS485 串口
+  Serial1.begin(115200, SERIAL_8N1, RS485_RX, RS485_TX);
 
-  strip.begin();                                         // 初始化LED库
-  strip.show();                                          // 熄灭LED
+  // 初始化舵机
+  initServos();
+  Serial.println("✓ 舵机初始化完成（90° 中位）");
 
-  initServos();                                          // 初始化舵机
+  // 设置串口超时（避免阻塞）
+  Serial.setTimeout(50);
 
-  Serial.println(R"(
-========================================
-机器人整合控制系统已启动
-- RS485 初始化完成
-- 舵机初始化完成
-- WS2812B LED 初始化完成
-========================================
-请通过串口发送控制指令)");
+  Serial.println("\n可用命令：");
+  Serial.println("  v <左速度> <右速度>    设置电机速度（RPM，-60 到 60）");
+  Serial.println("  pose <角1> <角2> <角3> <角4>  设置舵机角度（0-180°）");
+  Serial.println("  home                   回到初始姿态");
+  Serial.println("  stop                   紧急停止");
+  Serial.println("\n等待命令...\n");
 }
 
-// ========== 主循环 ==========
 void loop() {
-  processSerialCommand();                                // 处理串口指令
-  delay(10);                                             // 循环延时
+  // 处理串口命令
+  processCommand();
+
+  // 非阻塞更新舵机
+  updateServos();
+
+  // 主循环保持快速，不使用 delay
 }
